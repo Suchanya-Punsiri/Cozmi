@@ -1,0 +1,2834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cozy Cafe Notion Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght=0,400;0,600;0,700;1,400&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Quicksand', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            cursive: ['Caveat', 'cursive'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Cozy Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e6dfd5;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d4c9b9;
+    }
+
+    /* Soft Floating Glows */
+    .glow-soft {
+      box-shadow: 0 10px 30px -10px rgba(224, 168, 153, 0.2);
+    }
+    
+    /* Dynamic Theme Styles */
+    .theme-cafe {
+      --bg-main: #faf6f0;
+      --bg-card: #ffffff;
+      --accent: #d4a373;
+      --accent-light: #fefae0;
+      --accent-dark: #b5835a;
+      --text-main: #4a3e3d;
+      --text-muted: #8c7e7c;
+      --border-color: #f0e6da;
+    }
+    .theme-matcha {
+      --bg-main: #f3f4ed;
+      --bg-card: #ffffff;
+      --accent: #93b1a6;
+      --accent-light: #e0eed2;
+      --accent-dark: #5c8374;
+      --text-main: #2d3b36;
+      --text-muted: #738780;
+      --border-color: #e3ebd9;
+    }
+    .theme-lavender {
+      --bg-main: #f7f4fa;
+      --bg-card: #ffffff;
+      --accent: #bda2ca;
+      --accent-light: #f3ebf6;
+      --accent-dark: #8c6a9b;
+      --text-main: #3d3543;
+      --text-muted: #81748a;
+      --border-color: #eddfe2;
+    }
+    .theme-rose {
+      --bg-main: #faf4f4;
+      --bg-card: #ffffff;
+      --accent: #e0a899;
+      --accent-light: #fbeeed;
+      --accent-dark: #b97a6b;
+      --text-main: #4d3a37;
+      --text-muted: #8f7470;
+      --border-color: #f5e4e2;
+    }
+    .theme-dark-cozy {
+      --bg-main: #1f1a1a;
+      --bg-card: #2d2525;
+      --accent: #d4a373;
+      --accent-light: #3d3131;
+      --accent-dark: #e6b383;
+      --text-main: #f5ebe6;
+      --text-muted: #af9e9a;
+      --border-color: #3d3333;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .notion-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      transition: all 0.3s ease;
+    }
+    
+    .badge-pastel {
+      background-color: var(--accent-light);
+      color: var(--accent-dark);
+    }
+
+    /* Vertical spine styling for books */
+    .book-spine {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    /* Confetti Canvas overlay */
+    #confetti {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Custom classes for the selected active book look - now strictly straight & elevated upward */
+    .active-book-glow {
+      box-shadow: 0 0 20px var(--accent);
+      transform: translateY(-28px) rotate(0deg) scale(1.05) !important;
+      border: 2px solid var(--accent) !important;
+    }
+
+    /* Cursive typography override class */
+    .font-style-cursive, .font-style-cursive * {
+      font-family: 'Caveat', cursive !important;
+    }
+  </style>
+</head>
+<body class="theme-cafe font-sans overflow-x-hidden min-h-screen pb-12 transition-all">
+
+  <canvas id="confetti"></canvas>
+
+  <div class="flex flex-col lg:flex-row min-h-screen">
+    
+    <aside class="w-full lg:w-64 flex-shrink-0 p-6 border-b lg:border-b-0 lg:border-r border-[var(--border-color)] bg-[var(--bg-card)] transition-colors duration-300">
+      
+      <div onclick="openProfileModal()" class="flex items-center space-x-3 mb-8 cursor-pointer group hover:bg-[var(--accent-light)]/40 p-2 -m-2 rounded-xl transition-all duration-200" title="Click to customize profile">
+        <div id="profile-avatar-container" class="w-10 h-10 rounded-full bg-[var(--accent-light)] flex items-center justify-center overflow-hidden text-xl transition-transform group-hover:scale-110 shadow-sm border border-[var(--border-color)]">
+          <span id="profile-avatar-text">🧸</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 id="profile-name" class="font-bold text-sm tracking-wide uppercase text-[var(--accent-dark)] truncate" data-i18n="workspace">Cafe Workspace</h2>
+          <p class="text-xs text-[var(--text-muted)] flex items-center">
+            <span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1.5 animate-pulse"></span>
+            <span data-i18n="cozyMode">Cozy Mode Enabled</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-6 p-3 rounded-xl bg-[var(--bg-main)] notion-card">
+        <div class="flex items-center space-x-2 text-xs font-semibold text-[var(--text-muted)] mb-2">
+          <i data-lucide="languages" class="w-4 h-4 text-[var(--accent)]"></i>
+          <span data-i18n="selectLanguage">Language / Option</span>
+        </div>
+        <select onchange="changeLanguage(this.value)" id="language-dropdown" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] text-xs rounded-lg p-1.5 outline-none focus:border-[var(--accent)]">
+          <option value="en">English (EN)</option>
+          <option value="zh">中文 (ZH)</option>
+          <option value="ja">日本語 (JA)</option>
+          <option value="ko">한국어 (KO)</option>
+          <option value="th">ภาษาไทย (TH)</option>
+          <option value="no">Norsk (NO)</option>
+          <option value="it">Italiano (IT)</option>
+          <option value="fr">Français (FR)</option>
+          <option value="de">Deutsch (DE)</option>
+          <option value="cursive">✍️ Whimsical Cursive</option>
+        </select>
+      </div>
+
+      <nav class="space-y-1.5">
+        <p class="text-[10px] font-bold text-[var(--text-muted)] tracking-wider uppercase mb-2 px-3" data-i18n="favorites">Favorites</p>
+        
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full text-left px-3 py-2 rounded-lg flex items-center space-x-3 text-sm font-medium transition-all duration-200 badge-pastel">
+          <i data-lucide="home" class="w-4 h-4"></i>
+          <span data-i18n="navDashboard">☕ Cozy Cafe Hub</span>
+        </button>
+        <button onclick="switchTab('reading')" id="nav-reading" class="nav-btn w-full text-left px-3 py-2 rounded-lg flex items-center space-x-3 text-sm font-medium transition-all duration-200 text-[var(--text-muted)] hover:bg-[var(--accent-light)] hover:text-[var(--text-main)]">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          <span data-i18n="navReading">📚 Cozy Library Log</span>
+        </button>
+
+        <button onclick="switchTab('notes')" id="nav-notes" class="nav-btn w-full text-left px-3 py-2 rounded-lg flex items-center space-x-3 text-sm font-medium transition-all duration-200 text-[var(--text-muted)] hover:bg-[var(--accent-light)] hover:text-[var(--text-main)]">
+          <i data-lucide="sticky-note" class="w-4 h-4"></i>
+          <span data-i18n="navNotes">🎨 Creative Sticky Notes</span>
+        </button>
+      </nav>
+
+      <div class="mt-8 pt-6 border-t border-[var(--border-color)]">
+        <div class="p-3.5 rounded-xl bg-[var(--bg-main)] notion-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-[var(--text-muted)]" data-i18n="aestheticAmbient">Aesthetic Ambient</span>
+            <span id="music-indicator" class="hidden text-xs text-[var(--accent-dark)] animate-bounce font-mono">♪</span>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <button onclick="toggleMusic()" class="w-8 h-8 rounded-full bg-[var(--accent)] text-white flex items-center justify-center hover:scale-105 transition-transform">
+              <i id="play-icon" data-lucide="play" class="w-4 h-4"></i>
+            </button>
+            <div class="flex-1 overflow-hidden">
+              <p class="text-xs font-medium truncate" id="track-title" data-i18n="lofiTitle">Lofi Rain & Cafe Ambience</p>
+              <p class="text-[10px] text-[var(--text-muted)]" data-i18n="lofiSubtitle">Relaxing Synthesized Ambient</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8">
+        <p class="text-[10px] font-bold text-[var(--text-muted)] tracking-wider uppercase mb-2 px-3" data-i18n="palettes">Palettes</p>
+        <div class="grid grid-cols-5 gap-1.5 px-3">
+          <button onclick="setTheme('cafe')" class="w-6 h-6 rounded-full bg-[#d4a373] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Warm Cafe"></button>
+          <button onclick="setTheme('matcha')" class="w-6 h-6 rounded-full bg-[#93b1a6] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Matcha Green"></button>
+          <button onclick="setTheme('lavender')" class="w-6 h-6 rounded-full bg-[#bda2ca] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Lavender Calm"></button>
+          <button onclick="setTheme('rose')" class="w-6 h-6 rounded-full bg-[#e0a899] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Rose Quartz"></button>
+          <button onclick="setTheme('dark-cozy')" class="w-6 h-6 rounded-full bg-[#2d2525] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Warm Dark"></button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto">
+      
+      <div class="relative w-full h-48 sm:h-56 overflow-hidden bg-slate-200">
+        <img id="cover-image" src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1600" alt="Notion Cozy Cover" class="w-full h-full object-cover transition-all duration-500">
+        <div class="absolute bottom-4 right-4 flex space-x-2">
+          <button onclick="openCoverSelector()" class="bg-black/40 backdrop-blur-md hover:bg-black/60 text-white text-xs px-3 py-1.5 rounded-lg flex items-center space-x-1 transition-colors">
+            <i data-lucide="image" class="w-3.5 h-3.5"></i>
+            <span data-i18n="changeCover">Change Cover</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="max-w-5xl mx-auto px-4 sm:px-8 -mt-10 sm:-mt-12 relative z-10">
+        <div class="relative inline-block group border-4 border-[var(--bg-main)] rounded-2xl">
+          <button onclick="openEmojiSelector()" id="current-emoji" class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-md text-4xl sm:text-5xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer">
+            ☕
+          </button>
+          <div class="absolute -bottom-2 -right-2 bg-[var(--accent)] text-white p-1.5 rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform cursor-pointer">
+            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 id="page-title" class="font-serif text-3xl sm:text-4xl font-bold tracking-tight outline-none border-b border-transparent focus:border-[var(--accent)] focus:bg-[var(--bg-card)] rounded px-1 transition-all" contenteditable="true" onblur="savePageTitle()">
+                Cozy Cafe Workspace
+              </h1>
+              <i data-lucide="pencil" class="w-4 h-4 text-[var(--text-muted)] cursor-pointer" onclick="focusPageTitle()"></i>
+            </div>
+            <p class="text-sm text-[var(--text-muted)] mt-1.5" data-i18n="workspaceTagline">Welcome back! Grab some warm coffee and settle into your custom planner.</p>
+          </div>
+          
+          <div class="p-2 px-3 rounded-lg bg-[var(--accent-light)] text-xs text-[var(--accent-dark)] font-medium flex items-center space-x-2">
+            <span data-i18n="draftedSpace">✨ Active Workspace Loaded</span>
+          </div>
+        </div>
+
+        <div class="w-full h-[1px] bg-[var(--border-color)] my-6"></div>
+
+        <div id="profile-modal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div class="bg-[var(--bg-card)] p-6 rounded-2xl max-w-sm w-full border border-[var(--border-color)] glow-soft relative">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg font-serif">Profile Settings</h3>
+              <button onclick="closeProfileModal()" class="text-[var(--text-muted)] hover:text-red-500 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+            
+            <div class="flex flex-col items-center space-y-4">
+              <div class="relative group">
+                <div id="modal-profile-preview" class="w-24 h-24 rounded-full bg-[var(--accent-light)] border-2 border-[var(--accent)] flex items-center justify-center overflow-hidden text-4xl shadow-md transition-all">
+                  🧸
+                </div>
+                  <button onclick="triggerProfileUpload()" class="absolute bottom-0 right-0 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform duration-200" title="Upload custom photo">
+                  <i data-lucide="camera" class="w-4.5 h-4.5"></i>
+                </button>
+              </div>
+
+              <input type="file" id="profile-file-input" accept="image/*" class="hidden" onchange="uploadProfileImage(event)">
+
+              <div class="w-full">
+                <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]">Profile Display Name</label>
+                <input id="profile-name-input" type="text" placeholder="Cafe Workspace..." class="w-full bg-[var(--bg-main)] text-sm px-3.5 py-2 rounded-xl border border-[var(--border-color)] outline-none focus:border-[var(--accent)] transition-colors">
+              </div>
+
+              <div class="w-full">
+                <label class="block text-xs font-semibold mb-1.5 text-[var(--text-muted)]">Or choose a preset emoji</label>
+                <div class="grid grid-cols-5 gap-2.5 p-2 bg-[var(--bg-main)] rounded-xl border border-[var(--border-color)] text-2xl justify-items-center">
+                  <button onclick="setProfileEmoji('🧸')" class="hover:scale-125 transition-transform">🧸</button>
+                  <button onclick="setProfileEmoji('☕')" class="hover:scale-125 transition-transform">☕</button>
+                  <button onclick="setProfileEmoji('🦊')" class="hover:scale-125 transition-transform">🦊</button>
+                  <button onclick="setProfileEmoji('🍪')" class="hover:scale-125 transition-transform">🍪</button>
+                  <button onclick="setProfileEmoji('🌱')" class="hover:scale-125 transition-transform">🌱</button>
+                </div>
+              </div>
+
+              <button onclick="saveProfileSettings()" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-sm py-2.5 rounded-xl font-semibold transition-colors duration-200 shadow-sm mt-2">
+                Save & Update Profile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="emoji-modal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div class="bg-[var(--bg-card)] p-6 rounded-2xl max-w-sm w-full border border-[var(--border-color)] glow-soft">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg" data-i18n="pickIcon">Pick an Icon</h3>
+              <button onclick="closeEmojiSelector()" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="grid grid-cols-5 gap-3 text-3xl p-2 justify-items-center">
+              <button onclick="setEmoji('☕')" class="hover:scale-125 transition-transform p-1">☕</button>
+              <button onclick="setEmoji('🧸')" class="hover:scale-125 transition-transform p-1">🧸</button>
+              <button onclick="setEmoji('🥞')" class="hover:scale-125 transition-transform p-1">🥞</button>
+              <button onclick="setEmoji('🥐')" class="hover:scale-125 transition-transform p-1">🥐</button>
+              <button onclick="setEmoji('🌱')" class="hover:scale-125 transition-transform p-1">🌱</button>
+              <button onclick="setEmoji('📖')" class="hover:scale-125 transition-transform p-1">📖</button>
+              <button onclick="setEmoji('💡')" class="hover:scale-125 transition-transform p-1">💡</button>
+              <button onclick="setEmoji('☁️')" class="hover:scale-125 transition-transform p-1">☁️</button>
+              <button onclick="setEmoji('🕯️')" class="hover:scale-125 transition-transform p-1">🕯️</button>
+              <button onclick="setEmoji('🏡')" class="hover:scale-125 transition-transform p-1">🏡</button>
+            </div>
+          </div>
+        </div>
+        <div id="cover-modal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div class="bg-[var(--bg-card)] p-6 rounded-2xl max-w-md w-full border border-[var(--border-color)] glow-soft">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg" data-i18n="chooseCover">Choose Space Cover</h3>
+              <button onclick="closeCoverSelector()" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <button onclick="setCover('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1600')" class="h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)]">
+                <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=300" class="w-full h-full object-cover">
+              </button>
+              <button onclick="setCover('https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1600')" class="h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)]">
+                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=300" class="w-full h-full object-cover">
+              </button>
+              <button onclick="setCover('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1600')" class="h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)]">
+                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=300" class="w-full h-full object-cover">
+              </button>
+              <button onclick="setCover('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600')" class="h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)]">
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=300" class="w-full h-full object-cover">
+              </button>
+            </div>
+            <div class="flex space-x-2">
+              <input id="custom-cover-url" type="text" placeholder="Paste custom image URL..." class="flex-1 bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+              <button onclick="setCustomCover()" class="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-sm px-4 py-2 rounded-lg" data-i18n="apply">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <section id="tab-dashboard-content" class="tab-content block space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="md:col-span-2 space-y-6">
+              
+              <div class="p-6 rounded-2xl bg-[var(--accent-light)] border border-[var(--border-color)] relative overflow-hidden">
+                <div class="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-y-6 translate-x-6">
+                  <i data-lucide="coffee" class="w-48 h-48 text-[var(--accent-dark)]"></i>
+                </div>
+                <h3 class="font-serif text-2xl font-bold mb-1" data-i18n="morningCoffee">Morning coffee is brewing... ☕</h3>
+                <p class="text-sm text-[var(--accent-dark)] italic" data-i18n="grabCup">“Grab a warm cup of coffee and take today one cozy step at a time.”</p>
+              </div>
+
+              <div class="p-6 rounded-2xl notion-card glow-soft">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-lg font-normal">🧁</span>
+                    <h3 id="priorities-title" class="font-bold text-base outline-none border-b border-transparent focus:border-[var(--accent)] focus:bg-[var(--bg-main)] rounded px-1 transition-all" contenteditable="true" onblur="savePrioritiesTitle()" data-i18n="sweetThree">Today's Sweet Three Priorities</h3>
+                    <i data-lucide="pencil" class="w-3.5 h-3.5 text-[var(--text-muted)] cursor-pointer opacity-40 hover:opacity-100 transition-opacity" onclick="focusElement('priorities-title')"></i>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span id="priorities-subhead" class="text-xs text-[var(--text-muted)] font-medium outline-none border-b border-transparent focus:border-[var(--accent)] focus:bg-[var(--bg-main)] rounded px-1 transition-all" contenteditable="true" onblur="savePrioritiesSubhead()" data-i18n="focusProductivity">Focus is productivity</span>
+                    <i data-lucide="pencil" class="w-3.5 h-3.5 text-[var(--text-muted)] cursor-pointer opacity-40 hover:opacity-100 transition-opacity" onclick="focusElement('priorities-subhead')"></i>
+                  </div>
+                </div>
+                
+                <div class="space-y-3" id="sweet-three-container">
+                  </div>
+
+                <div class="mt-4 flex space-x-2">
+                  <input id="new-priority-input" type="text" placeholder="Add a new goal..." class="flex-1 bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                  <button onclick="addTask('priority')" class="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs px-3.5 py-2 rounded-lg flex items-center space-x-1.5 font-medium">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span data-i18n="add">Add</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-6 rounded-2xl notion-card glow-soft">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-lg">☁️</span>
+                    <h3 class="font-bold text-base" data-i18n="cozyRoutine">Cozy Daily Routine</h3>
+                  </div>
+                  <button onclick="resetRoutines()" class="text-xs text-[var(--accent-dark)] hover:underline flex items-center space-x-1">
+                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                    <span data-i18n="resetTasks">Reset Tasks</span>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="routines-container">
+                  </div>
+                <div class="mt-4 flex space-x-2 border-t border-[var(--border-color)] pt-4">
+                  <input id="new-routine-input" type="text" placeholder="Add custom routine..." class="flex-1 bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                  <button onclick="addTask('routine')" class="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs px-3.5 py-2 rounded-lg flex items-center space-x-1.5 font-medium">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span data-i18n="add">Add</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="p-6 rounded-2xl notion-card text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-tr from-[var(--accent-light)] to-transparent opacity-30 pointer-events-none"></div>
+                <p class="text-xs uppercase tracking-widest font-semibold text-[var(--text-muted)] mb-1" id="date-string">Saturday, May 2026</p>
+                <h2 class="text-4xl font-serif font-bold text-[var(--accent-dark)] tracking-tight my-2" id="live-clock">12:00:00 PM</h2>
+                <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[var(--accent-light)] text-[10px] text-[var(--accent-dark)] font-medium mt-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-ping"></span>
+                  <span data-i18n="ambientVibe">Warm & quiet afternoon</span>
+                </div>
+              </div>
+
+              <div class="p-6 rounded-2xl notion-card relative">
+                <div class="flex items-center space-x-2 mb-3">
+                  <i data-lucide="feather" class="w-4.5 h-4.5 text-[var(--accent)]"></i>
+                  <h3 class="font-bold text-sm" data-i18n="quickReflection">Quick Space Reflection</h3>
+                </div>
+                <textarea id="workspace-journal" oninput="saveJournal()" placeholder="Type what's on your mind today..." class="w-full h-36 bg-[var(--bg-main)] text-xs p-3 rounded-xl border border-[var(--border-color)] outline-none resize-none focus:border-[var(--accent)] transition-colors" style="line-height: 1.6;"></textarea>
+                <div class="flex justify-between items-center mt-2 text-[10px] text-[var(--text-muted)]">
+                  <span id="journal-word-count">0 words</span>
+                  <span data-i18n="autoSaved">Draft Auto-Saved</span>
+                </div>
+              </div>
+              <div class="p-5 rounded-2xl notion-card bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-main)]">
+                <h3 class="font-bold text-xs uppercase tracking-wider text-[var(--text-muted)] mb-3" data-i18n="cafeStatistics">Cafe Workspace Stats</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center">
+                    <span class="text-xl">☕</span>
+                    <h4 class="text-lg font-bold mt-1" id="stat-priority-count">0</h4>
+                    <p class="text-[10px] text-[var(--text-muted)]" data-i18n="goalsLeft">Active Goals</p>
+                  </div>
+                  <div class="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center">
+                    <span class="text-xl">🍪</span>
+                    <h4 class="text-lg font-bold mt-1" id="stat-habit-rate">0%</h4>
+                    <p class="text-[10px] text-[var(--text-muted)]" data-i18n="habitsDone">Habit Rate</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <section id="tab-habits-content" class="tab-content hidden space-y-6">
+          <div class="p-6 rounded-2xl notion-card glow-soft">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 class="text-2xl font-serif font-bold text-[var(--text-main)]" data-i18n="habitTitle">Honey Habit Tracker</h2>
+                <p class="text-xs text-[var(--text-muted)] mt-1" data-i18n="habitSubtitle">Nurture your daily rituals like sweet, slow-pouring honey.</p>
+              </div>
+              <div class="flex items-center space-x-3 bg-[var(--accent-light)] p-3 rounded-xl border border-[var(--border-color)]">
+                <span class="text-2xl">🍯</span>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider font-bold text-[var(--accent-dark)]" data-i18n="honeySweetness">Honey Jar Level</p>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-24 h-2 bg-white/60 rounded-full overflow-hidden border border-[var(--accent)/30]">
+                      <div id="honey-progress-bar" class="h-full bg-amber-400 transition-all duration-500" style="width: 40%;"></div>
+                    </div>
+                    <span id="honey-progress-text" class="text-xs font-bold text-[var(--accent-dark)]">40%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs min-w-[600px]">
+                <thead>
+                  <tr class="border-b border-[var(--border-color)] text-[var(--text-muted)] font-semibold">
+                    <th class="py-3 px-2 w-1/3" data-i18n="habitName">My Habit</th>
+                    <th class="py-3 text-center">Mon</th>
+                    <th class="py-3 text-center">Tue</th>
+                    <th class="py-3 text-center">Wed</th>
+                    <th class="py-3 text-center">Thu</th>
+                    <th class="py-3 text-center">Fri</th>
+                    <th class="py-3 text-center">Sat</th>
+                    <th class="py-3 text-center">Sun</th>
+                    <th class="py-3 text-center w-12"></th>
+                  </tr>
+                </thead>
+                <tbody id="habits-table-body" class="divide-y divide-[var(--border-color)]">
+                  </tbody>
+              </table>
+            </div>
+
+            <div class="mt-6 p-4 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)]">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Habit Icon / Emoji</label>
+                  <div class="flex flex-wrap gap-2" id="habit-emoji-selector">
+                    <button onclick="setSelectedHabitEmoji('🍯')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-amber-300 text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-🍯">🍯</button>
+                    <button onclick="setSelectedHabitEmoji('💧')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-💧">💧</button>
+                    <button onclick="setSelectedHabitEmoji('📖')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-📖">📖</button>
+                    <button onclick="setSelectedHabitEmoji('🍵')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-🍵">🍵</button>
+                    <button onclick="setSelectedHabitEmoji('🧘‍♀️')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-🧘‍♀️">🧘‍♀️</button>
+                    <button onclick="setSelectedHabitEmoji('🌙')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-🌙">🌙</button>
+                    <button onclick="setSelectedHabitEmoji('✏️')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-✏️">✏️</button>
+                    <button onclick="setSelectedHabitEmoji('🏃‍♀️')" class="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-base flex items-center justify-center hover:scale-105 transition-all habit-emoji-btn" id="habit-emoji-🏃‍♀️">🏃‍♀️</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Habit Color Palette</label>
+                  <div class="flex gap-2.5 pt-0.5">
+                    <button onclick="setSelectedHabitColor('amber')" class="w-8 h-8 rounded-full bg-amber-200 border-2 border-amber-400 scale-110 shadow-sm transition-all habit-color-btn" id="habit-color-amber" title="Honey Amber"></button>
+                    <button onclick="setSelectedHabitColor('emerald')" class="w-8 h-8 rounded-full bg-emerald-200 border-2 border-transparent hover:scale-105 transition-all habit-color-btn" id="habit-color-emerald" title="Matcha Green"></button>
+                    <button onclick="setSelectedHabitColor('rose')" class="w-8 h-8 rounded-full bg-rose-200 border-2 border-transparent hover:scale-105 transition-all habit-color-btn" id="habit-color-rose" title="Rose Quartz"></button>
+                    <button onclick="setSelectedHabitColor('lavender')" class="w-8 h-8 rounded-full bg-purple-200 border-2 border-transparent hover:scale-105 transition-all habit-color-btn" id="habit-color-lavender" title="Lavender Violet"></button>
+                    <button onclick="setSelectedHabitColor('sky')" class="w-8 h-8 rounded-full bg-sky-200 border-2 border-transparent hover:scale-105 transition-all habit-color-btn" id="habit-color-sky" title="Ocean Sky"></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <input id="new-habit-input" type="text" placeholder="Drink 8 glasses of water, read, write..." class="flex-1 bg-[var(--bg-card)] text-sm px-4 py-2.5 rounded-xl border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                <button onclick="addHabit()" class="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs px-5 py-2.5 rounded-xl font-medium flex items-center space-x-1.5 transition-colors">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                  <span data-i18n="addHabit">Add Habit</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="tab-reading-content" class="tab-content hidden space-y-6">
+          
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-serif font-bold text-[var(--text-main)]" data-i18n="libraryTitle">📚 Cozy Library Log</h2>
+              <p class="text-xs text-[var(--text-muted)] mt-1" data-i18n="librarySubtitle">Manage your standing literature side-by-side and see updates instantly on the shelves.</p>
+            </div>
+            
+            <button onclick="openAddBookModal()" class="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs px-4 py-2.5 rounded-xl font-medium flex items-center space-x-1.5 shadow-sm transition-all hover:scale-105">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span data-i18n="addNewBook">Add Book to Shelf</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            <div class="lg:col-span-2 space-y-8">
+              
+              <div class="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border-color)] glow-soft relative overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="font-serif font-bold text-sm text-[var(--accent-dark)] flex items-center space-x-2">
+                    <span>📖</span>
+                    <span data-i18n="readingNow">Reading Now</span>
+                    <span id="count-reading" class="ml-2 text-xs px-2 py-0.5 rounded-full badge-pastel font-sans font-bold">0</span>
+                  </h3>
+                </div>
+                
+                <div class="relative py-2 px-1">
+                  <div id="shelf-reading" class="flex items-end gap-3.5 px-4 min-h-[190px] overflow-x-auto pb-2 relative z-10">
+                    </div>
+                  <div class="h-4 w-full bg-gradient-to-r from-[#8b5a2b] via-[#a0522d] to-[#733d1a] border-b-4 border-[#4d2a13] rounded-b-md shadow-md relative z-20"></div>
+                </div>
+              </div>
+
+              <div class="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border-color)] glow-soft relative overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="font-serif font-bold text-sm text-[var(--accent-dark)] flex items-center space-x-2">
+                    <span>🧸</span>
+                    <span data-i18n="toRead">To Read Next</span>
+                    <span id="count-toread" class="ml-2 text-xs px-2 py-0.5 rounded-full badge-pastel font-sans font-bold">0</span>
+                  </h3>
+                </div>
+                
+                <div class="relative py-2 px-1">
+                  <div id="shelf-toread" class="flex items-end gap-3.5 px-4 min-h-[190px] overflow-x-auto pb-2 relative z-10">
+                    </div>
+                  <div class="h-4 w-full bg-gradient-to-r from-[#8b5a2b] via-[#a0522d] to-[#733d1a] border-b-4 border-[#4d2a13] rounded-b-md shadow-md relative z-20"></div>
+                </div>
+              </div>
+              <div class="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border-color)] glow-soft relative overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="font-serif font-bold text-sm text-[var(--accent-dark)] flex items-center space-x-2">
+                    <span>✨</span>
+                    <span data-i18n="completed">Completed literature</span>
+                    <span id="count-completed" class="ml-2 text-xs px-2 py-0.5 rounded-full badge-pastel font-sans font-bold">0</span>
+                  </h3>
+                </div>
+                
+                <div class="relative py-2 px-1">
+                  <div id="shelf-completed" class="flex items-end gap-3.5 px-4 min-h-[190px] overflow-x-auto pb-2 relative z-10">
+                    </div>
+                  <div class="h-4 w-full bg-gradient-to-r from-[#8b5a2b] via-[#a0522d] to-[#733d1a] border-b-4 border-[#4d2a13] rounded-b-md shadow-md relative z-20"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <div id="book-inspector-card" class="bg-[var(--bg-card)] rounded-2xl p-5 border border-[var(--border-color)] glow-soft sticky top-6">
+              <div id="inspector-placeholder" class="text-center py-12">
+                <span class="text-4xl block mb-3">📖</span>
+                <h4 class="font-serif font-bold text-base mb-1" data-i18n="inspectTitle">Book Inspector</h4>
+                <p class="text-xs text-[var(--text-muted)] px-4 leading-relaxed" data-i18n="inspectPrompt">Tap or click any standing book on the wooden shelves to view its notes, flip pages, update colors, or transfer shelves instantly!</p>
+              </div>
+
+              <div id="inspector-active" class="hidden space-y-4">
+                <div class="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-2xl" id="inspect-book-emoji">📖</span>
+                    <div>
+                      <h4 class="font-serif font-bold text-sm truncate max-w-[140px]" id="inspect-title-text">Book Title</h4>
+                      <p class="text-[10px] text-[var(--text-muted)] truncate max-w-[140px]" id="inspect-author-text">By Author Name</p>
+                    </div>
+                  </div>
+                  <button onclick="deselectBook()" class="text-[var(--text-muted)] hover:text-red-500 p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <div class="bg-[var(--bg-main)] p-3.5 rounded-xl space-y-2">
+                  <div class="flex justify-between items-center text-xs font-semibold">
+                    <span data-i18n="progress">Reading Progress</span>
+                    <span id="inspect-progress-percent" class="font-mono text-[var(--accent-dark)]">0%</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-black/5 rounded-full overflow-hidden">
+                    <div id="inspect-progress-fill" class="h-full bg-[var(--accent)] transition-all duration-300" style="width: 0%;"></div>
+                  </div>
+                  <div class="flex items-center justify-between pt-1">
+                    <span class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider" data-i18n="pagesRead">Pages Read</span>
+                    <div class="flex items-center space-x-1.5">
+                      <input id="inspect-input-read" type="number" oninput="onInspectorPagesChanged()" class="w-14 bg-[var(--bg-card)] text-xs border border-[var(--border-color)] rounded p-1 text-center font-bold outline-none focus:border-[var(--accent)]">
+                      <span class="text-xs text-[var(--text-muted)]">/ <span id="inspect-total-span" class="font-bold">200</span></span>
+                    </div>
+                  </div>
+                  <input id="inspect-slider" type="range" min="0" max="100" value="0" oninput="onInspectorSliderMoved(this.value)" class="w-full accent-[var(--accent)] cursor-ew-resize mt-2">
+                </div>
+                <div class="space-y-2.5">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-[9px] uppercase tracking-wider font-bold mb-0.5 text-[var(--text-muted)]" data-i18n="bookTitle">Book Title</label>
+                      <input id="inspect-edit-title" type="text" oninput="onInspectorDetailsEdited()" class="w-full bg-[var(--bg-main)] text-xs px-2 py-1.5 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                    </div>
+                    <div>
+                      <label class="block text-[9px] uppercase tracking-wider font-bold mb-0.5 text-[var(--text-muted)]" data-i18n="bookAuthor">Author</label>
+                      <input id="inspect-edit-author" type="text" oninput="onInspectorDetailsEdited()" class="w-full bg-[var(--bg-main)] text-xs px-2 py-1.5 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                    </div>
+                  </div>
+
+                  <div class="border-t border-[var(--border-color)] pt-3 mt-3">
+                    <h5 class="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-dark)] mb-2 flex items-center space-x-1">
+                      <span>🎨</span>
+                      <span>Spine Design & Styling</span>
+                    </h5>
+                    
+                    <div class="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label class="block text-[9px] font-bold text-[var(--text-muted)] mb-1">Custom Color</label>
+                        <div class="flex items-center space-x-1.5">
+                          <input id="inspect-custom-color" type="color" oninput="onInspectorCustomColorChanged(this.value)" class="w-8 h-8 rounded-lg border border-[var(--border-color)] cursor-pointer bg-transparent">
+                          <span id="inspect-custom-color-hex" class="text-[10px] font-mono uppercase text-[var(--text-muted)]">#ffffff</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="block text-[9px] font-bold text-[var(--text-muted)] mb-1">Spine Pattern</label>
+                        <select id="inspect-spine-style" onchange="onInspectorDesignChanged()" class="w-full bg-[var(--bg-main)] text-[10px] px-1.5 py-1.5 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                          <option value="solid">Clean Solid</option>
+                          <option value="vintage">Vintage Gold-Foil</option>
+                          <option value="striped">Cafe Diagonal Stripes</option>
+                          <option value="notebook">Stitched Notebook</option>
+                          <option value="sparkle">Magic Sparkles</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-[9px] font-bold text-[var(--text-muted)] mb-1">Decal Symbol</label>
+                        <select id="inspect-spine-symbol" onchange="onInspectorDesignChanged()" class="w-full bg-[var(--bg-main)] text-[10px] px-1.5 py-1.5 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                          <option value="">None</option>
+                          <option value="☕">☕ Coffee Cup</option>
+                          <option value="🧸">🧸 Cozy Bear</option>
+                          <option value="✨">✨ Magic Stars</option>
+                          <option value="🌿">🌿 Plant Leaf</option>
+                          <option value="🌙">🌙 Crescent Moon</option>
+                          <option value="🌸">🌸 Cherry Blossom</option>
+                          <option value="🪐">🪐 Cosmic Planet</option>
+                          <option value="🐾">🐾 Cozy Paws</option>
+                          <option value="👑">👑 Royal Crown</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label class="block text-[9px] font-bold text-[var(--text-muted)] mb-1">Text Color</label>
+                        <select id="inspect-text-color" onchange="onInspectorDesignChanged()" class="w-full bg-[var(--bg-main)] text-[10px] px-1.5 py-1.5 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                          <option value="#ffffff">Cream White</option>
+                          <option value="#3b2314">Walnut Dark Brown</option>
+                          <option value="#fcd34d">Foil Gold</option>
+                          <option value="#fca5a5">Blossom Pink</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="space-y-1.5 mt-3 pt-2.5 border-t border-[var(--border-color)]/60">
+                      <div class="flex justify-between text-[9px] font-bold text-[var(--text-muted)]">
+                        <span>Spine Height</span>
+                        <span id="inspect-height-label">130px</span>
+                      </div>
+                      <input id="inspect-slider-height" type="range" min="100" max="170" value="130" oninput="onInspectorDimensionChanged('height', this.value)" class="w-full accent-[var(--accent)] h-1 cursor-ew-resize">
+
+                      <div class="flex justify-between text-[9px] font-bold text-[var(--text-muted)] mt-1.5">
+                        <span>Spine Thickness (Width)</span>
+                        <span id="inspect-width-label">40px</span>
+                      </div>
+                      <input id="inspect-slider-width" type="range" min="30" max="60" value="40" oninput="onInspectorDimensionChanged('width', this.value)" class="w-full accent-[var(--accent)] h-1 cursor-ew-resize">
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 pt-1 border-t border-[var(--border-color)]">
+                    <div>
+                      <label class="block text-[9px] uppercase tracking-wider font-bold mb-0.5 text-[var(--text-muted)]" data-i18n="bookColor">Preset Theme</label>
+                      <select id="inspect-edit-color" onchange="onInspectorPresetColorChanged(this.value)" class="w-full bg-[var(--bg-main)] text-[10px] px-1.5 py-1 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                        <option value="bg-gradient-to-t from-red-800 to-red-600 text-red-100">Dusty Red Rose</option>
+                        <option value="bg-gradient-to-t from-amber-800 to-amber-600 text-amber-50">Warm Walnut Brown</option>
+                        <option value="bg-gradient-to-t from-emerald-800 to-emerald-600 text-emerald-100">Matcha Green</option>
+                        <option value="bg-gradient-to-t from-indigo-900 to-indigo-700 text-indigo-100">Midnight Ink Blue</option>
+                        <option value="bg-gradient-to-t from-violet-800 to-violet-600 text-violet-100">Cozy Lavender Purple</option>
+                        <option value="bg-gradient-to-t from-rose-400 to-rose-300 text-rose-950">Blossom Pink</option>
+                        <option value="bg-gradient-to-t from-amber-500 to-yellow-400 text-amber-950">Sunny Lemon Gold</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[9px] uppercase tracking-wider font-bold mb-0.5 text-[var(--text-muted)]" data-i18n="shelfStatus">Shelf Status</label>
+                      <select id="inspect-edit-status" onchange="onInspectorShelfChanged(this.value)" class="w-full bg-[var(--bg-main)] text-[10px] px-1.5 py-1 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                        <option value="reading" data-i18n="readingNow">Reading Now</option>
+                        <option value="toread" data-i18n="toRead">To Read Next</option>
+                        <option value="completed" data-i18n="completed">Completed literature</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1.5">
+                  <button onclick="toggleCompletedInspector()" class="bg-amber-400 hover:bg-amber-500 text-amber-950 text-[11px] py-2 rounded-lg font-bold flex items-center justify-center space-x-1">
+                    <span>👑</span>
+                    <span data-i18n="completeBtn">Complete</span>
+                  </button>
+                  <button onclick="deleteBookInspector()" class="text-red-500 hover:bg-red-50 text-[11px] py-2 rounded-lg font-bold border border-red-200" data-i18n="removeBook">Remove Book</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="book-modal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-[var(--bg-card)] p-6 rounded-2xl max-w-sm w-full border border-[var(--border-color)] glow-soft">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg" data-i18n="addNewBook">Add Book to Shelf</h3>
+                <button onclick="closeAddBookModal()" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+              </div>
+              <div class="space-y-3.5">
+                <div>
+                  <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]" data-i18n="bookTitle">Book Title</label>
+                  <input id="book-title-input" type="text" placeholder="The Cozy Cafe Diary..." class="w-full bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]" data-i18n="bookAuthor">Author</label>
+                  <input id="book-author-input" type="text" placeholder="Haruki Murakami..." class="w-full bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]" data-i18n="totalPages">Total Pages</label>
+                    <input id="book-pages-input" type="number" value="250" class="w-full bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]" data-i18n="pagesRead">Pages Read</label>
+                    <input id="book-read-input" type="number" value="0" class="w-full bg-[var(--bg-main)] text-sm px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]" data-i18n="bookColor">Spine / Cover Color</label>
+                  <select id="book-color-input" class="w-full bg-[var(--bg-main)] text-xs px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                    <option value="bg-gradient-to-t from-red-800 to-red-600 text-red-100">Dusty Red Rose</option>
+                    <option value="bg-gradient-to-t from-amber-800 to-amber-600 text-amber-50" selected>Warm Walnut Brown</option>
+                    <option value="bg-gradient-to-t from-emerald-800 to-emerald-600 text-emerald-100">Matcha Green</option>
+                    <option value="bg-gradient-to-t from-indigo-900 to-indigo-700 text-indigo-100">Midnight Ink Blue</option>
+                    <option value="bg-gradient-to-t from-violet-800 to-violet-600 text-violet-100">Cozy Lavender Purple</option>
+                    <option value="bg-gradient-to-t from-rose-400 to-rose-300 text-rose-950">Blossom Pink</option>
+                    <option value="bg-gradient-to-t from-amber-500 to-yellow-400 text-amber-950">Sunny Lemon Gold</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold mb-1 text-[var(--text-muted)]" data-i18n="shelfStatus">Shelf Status</label>
+                  <select id="book-status-input" class="w-full bg-[var(--bg-main)] text-xs px-3 py-2 rounded-lg border border-[var(--border-color)] outline-none focus:border-[var(--accent)]">
+                    <option value="reading" data-i18n="readingNow">Reading Now</option>
+                    <option value="toread" data-i18n="toRead">To Read Next</option>
+                    <option value="completed" data-i18n="completed">Completed literature</option>
+                  </select>
+                </div>
+                <button onclick="addBook()" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-sm py-2.5 rounded-xl font-medium transition-colors" data-i18n="add">Add</button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <section id="tab-notes-content" class="tab-content hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-serif font-bold text-[var(--text-main)]" data-i18n="notesTitle">🎨 Creative Sticky Notes</h2>
+              <p class="text-xs text-[var(--text-muted)] mt-1" data-i18n="notesSubtitle">Pin colorful thoughts, warm ideas, and mini quotes onto your desk corkboard.</p>
+            </div>
+            
+            <button onclick="addStickyNote()" class="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white text-xs px-4 py-2.5 rounded-xl font-medium flex items-center space-x-1.5 shadow-sm transition-all hover:scale-105">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span data-i18n="addSticky">New Sticky Note</span>
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-6 p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]">
+            <div class="flex items-center space-x-3">
+              <span class="text-xs font-semibold text-[var(--text-muted)]" data-i18n="selectStickyColor">Sticky Color:</span>
+              <div class="flex space-x-2">
+                <button onclick="setStickyColor('bg-yellow-100 border-yellow-200 text-yellow-900', 'yellow')" id="color-yellow" class="w-5 h-5 rounded-full bg-yellow-100 border-2 border-yellow-400 scale-125 transition-transform" title="Sunny Honey"></button>
+                <button onclick="setStickyColor('bg-rose-100 border-rose-200 text-rose-900', 'rose')" id="color-rose" class="w-5 h-5 rounded-full bg-rose-100 border-2 border-transparent hover:scale-110 transition-transform" title="Rose Quartz"></button>
+                <button onclick="setStickyColor('bg-teal-100 border-teal-200 text-teal-900', 'teal')" id="color-teal" class="w-5 h-5 rounded-full bg-teal-100 border-2 border-transparent hover:scale-110 transition-transform" title="Warm Mint"></button>
+                <button onclick="setStickyColor('bg-purple-100 border-purple-200 text-purple-900', 'purple')" id="color-purple" class="w-5 h-5 rounded-full bg-purple-100 border-2 border-transparent hover:scale-110 transition-transform" title="Cosmic Lavender"></button>
+                <button onclick="setStickyColor('bg-orange-100 border-orange-200 text-orange-900', 'orange')" id="color-orange" class="w-5 h-5 rounded-full bg-orange-100 border-2 border-transparent hover:scale-110 transition-transform" title="Peach Pastel"></button>
+              </div>
+            </div>
+
+            <div class="hidden md:block h-6 w-[1px] bg-[var(--border-color)]"></div>
+
+            <div class="flex flex-wrap items-center gap-4">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold text-[var(--text-muted)]">Width:</span>
+                <input id="sticky-width-slider" type="range" min="180" max="400" value="280" oninput="onStickySizeChanged('width', this.value)" class="w-24 accent-[var(--accent)] h-1 cursor-ew-resize">
+                <span id="sticky-width-label" class="text-[10px] font-mono text-[var(--text-muted)] w-10">280px</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold text-[var(--text-muted)]">Height:</span>
+                <input id="sticky-height-slider" type="range" min="120" max="350" value="180" oninput="onStickySizeChanged('height', this.value)" class="w-24 accent-[var(--accent)] h-1 cursor-ew-resize">
+                <span id="sticky-height-label" class="text-[10px] font-mono text-[var(--text-muted)] w-10">180px</span>
+              </div>
+            </div>
+
+            <div class="hidden lg:block h-6 w-[1px] bg-[var(--border-color)]"></div>
+
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold text-[var(--text-muted)]">Quick Presets:</span>
+              <button onclick="setStickySizePreset(220, 150)" class="text-[10px] px-2 py-1 bg-[var(--bg-main)] rounded-lg border border-[var(--border-color)] hover:bg-[var(--accent-light)] hover:text-[var(--accent-dark)] transition-colors font-medium">Small</button>
+              <button onclick="setStickySizePreset(280, 200)" class="text-[10px] px-2 py-1 bg-[var(--bg-main)] rounded-lg border border-[var(--border-color)] hover:bg-[var(--accent-light)] hover:text-[var(--accent-dark)] transition-colors font-medium">Medium</button>
+              <button onclick="setStickySizePreset(350, 260)" class="text-[10px] px-2 py-1 bg-[var(--bg-main)] rounded-lg border border-[var(--border-color)] hover:bg-[var(--accent-light)] hover:text-[var(--accent-dark)] transition-colors font-medium">Large</button>
+            </div>
+          </div>
+          <div class="relative w-full h-[600px] rounded-3xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-inner overflow-hidden select-none" id="sticky-board" style="background: #fdfaf6; background-image: radial-gradient(#d4c6b1 1.5px, transparent 1.5px); background-size: 24px 24px;">
+            </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Audio Context state for Synthesizing Lofi chord structures offline
+    let audioCtx;
+    let mainGainNode;
+    let noiseGainNode;
+    let synthInterval;
+    let isSynthPlaying = false;
+    let noiseBufferNode;
+
+    // Translation Engine supporting EN, ZH, JA, KO, TH, NO, IT, FR, DE, and Cursive Style
+    const languageDict = {
+      en: {
+        workspace: "Cafe Workspace",
+        cozyMode: "Cozy Mode Enabled",
+        favorites: "Favorites",
+        navDashboard: "☕ Cozy Cafe Hub",
+        navHabits: "🍯 Honey Habit Tracker",
+        navReading: "📚 Cozy Library Log",
+        navNotes: "🎨 Creative Sticky Notes",
+        aestheticAmbient: "Aesthetic Ambient",
+        lofiTitle: "Lofi Rain & Cafe Ambience",
+        lofiSubtitle: "Relaxing Synthesized Ambient",
+        palettes: "Palettes",
+        changeCover: "Change Cover",
+        workspaceTagline: "Welcome back! Grab some warm coffee and settle into your custom planner.",
+        draftedSpace: "✨ Active Workspace Loaded",
+        pickIcon: "Pick an Icon",
+        chooseCover: "Choose Space Cover",
+        apply: "Apply",
+        morningCoffee: "Morning coffee is brewing... ☕",
+        grabCup: "“Grab a warm cup of coffee and take today one cozy step at a time.”",
+        sweetThree: "Today's Sweet Three Priorities",
+        focusProductivity: "Focus is productivity",
+        add: "Add",
+        cozyRoutine: "Cozy Daily Routine",
+        resetTasks: "Reset Tasks",
+        ambientVibe: "Warm & quiet afternoon",
+        quickReflection: "Quick Space Reflection",
+        autoSaved: "Draft Auto-Saved",
+        cafeStatistics: "Cafe Workspace Stats",
+        goalsLeft: "Active Goals",
+        habitsDone: "Habit Rate",
+        habitTitle: "Honey Habit Tracker",
+        habitSubtitle: "Nurture your daily rituals like sweet, slow-pouring honey.",
+        honeySweetness: "Honey Jar Level",
+        habitName: "My Habit",
+        addHabit: "Add Habit",
+        libraryTitle: "📚 Cozy Library Log",
+        librarySubtitle: "Manage your standing literature side-by-side and see updates instantly on the shelves.",
+        addNewBook: "Add Book to Shelf",
+        readingNow: "Reading Now",
+        toRead: "To Read Next",
+        completed: "Completed literature",
+        emptyShelf: "No books standing here.",
+        bookTitle: "Book Title",
+        bookAuthor: "Author",
+        totalPages: "Total Pages",
+        pagesRead: "Pages Read",
+        bookColor: "Spine / Cover Color",
+        shelfStatus: "Shelf Status",
+        progress: "Reading Progress",
+        save: "Save",
+        completeBtn: "Complete",
+        removeBook: "Remove Book",
+        cancel: "Cancel",
+        notesTitle: "🎨 Creative Sticky Notes",
+        notesSubtitle: "Pin colorful thoughts, warm ideas, and mini quotes onto your desk corkboard.",
+        addSticky: "New Sticky Note",
+        selectStickyColor: "Sticky Color:",
+        selectLanguage: "Language / Språk",
+        stickyPlaceholder: "Click here to write something sweet and cozy...",
+        inspectTitle: "Book Inspector",
+        inspectPrompt: "Tap or click any standing book on the wooden shelves to view its notes, flip pages, update colors, or transfer shelves instantly!"
+      },
+      zh: {
+        workspace: "咖啡馆工作空间",
+        cozyMode: "舒适模式已启用",
+        favorites: "特别收藏",
+        navDashboard: "☕ 舒适咖啡中心",
+        navHabits: "🍯 习惯追踪",
+        navReading: "📚 温馨图书角",
+        navNotes: "🎨 创意手账便利贴",
+        aestheticAmbient: "美学氛围声效",
+        lofiTitle: "舒适雨声与咖啡暖音",
+        lofiSubtitle: "放松白噪音合成乐",
+        palettes: "主题调色盘",
+        changeCover: "更换封面",
+        workspaceTagline: "欢迎回来！倒上一杯温暖的咖啡，惬意打理你的一天吧。",
+        draftedSpace: "✨ 活跃的空间工作区已加载",
+        pickIcon: "选择新图标",
+        chooseCover: "选择空间封面图",
+        apply: "应用",
+        morningCoffee: "早安，咖啡正在冲泡中... ☕",
+        grabCup: "“捧着温热的茶杯，一步一个脚印，轻松自在地过好今天。”",
+        sweetThree: "今日的三大任务",
+        focusProductivity: "专注是最好的放松",
+        add: "添加",
+        cozyRoutine: "每日温馨例行生活",
+        resetTasks: "重置任务进度",
+        ambientVibe: "温暖而安详的午后",
+        quickReflection: "空间随笔速记",
+        autoSaved: "草稿已实时自动保存",
+        cafeStatistics: "空间数据看板",
+        goalsLeft: "进行中的目标",
+        habitsDone: "习惯达成率",
+        habitTitle: "蜜罐习惯养成记",
+        habitSubtitle: "像酿造蜂蜜一样，慢慢浇灌你的每日生活仪式。",
+        honeySweetness: "小蜜罐累积度",
+        habitName: "我的生活习惯",
+        addHabit: "添加习惯",
+        libraryTitle: "📚 温馨书架日志",
+        librarySubtitle: "并排摆放与浏览你的书籍，在右侧面板直接调节参数，看它们在木架上实时移动！",
+        addNewBook: "新增书籍",
+        readingNow: "正在阅读的书",
+        toRead: "想要阅读的书",
+        completed: "已读完的藏书",
+        emptyShelf: "书架空空如也。",
+        bookTitle: "书籍名称",
+        bookAuthor: "作者名",
+        totalPages: "总页数",
+        pagesRead: "已读页数",
+        bookColor: "书脊颜色",
+        shelfStatus: "摆放书架",
+        progress: "阅读进度",
+        save: "保存更改",
+        completeBtn: "圆满完成",
+        removeBook: "从书架移出",
+        cancel: "取消",
+        notesTitle: "🎨 创意彩虹便利贴",
+        notesSubtitle: "在虚拟软木板上钉上缤纷的思想、温暖的灵感或名人短语。",
+        addSticky: "撕张新便利贴",
+        selectStickyColor: "便利贴色彩:",
+        selectLanguage: "选择语言",
+        stickyPlaceholder: "点这里写下一些甜甜的文字...",
+        inspectTitle: "书籍巡检器",
+        inspectPrompt: "轻触书架上并排站立的任意一本图书，就能在右侧查看进度、拖动进度条、更新颜色、瞬间调换书架！"
+      },
+      ja: {
+        workspace: "カフェスペース",
+        cozyMode: "コージーモード有効中",
+        favorites: "お気に入り",
+        navDashboard: "☕ コージーハブ",
+        navHabits: "🍯 習慣トラッカー",
+        navReading: "📚 コジー書棚ログ",
+        navNotes: "🎨 クリエイティブ付箋",
+        aestheticAmbient: "アンビエント音響",
+        lofiTitle: "コージー雨音＆カフェ",
+        lofiSubtitle: "リラックス合成ノイズ",
+        palettes: "カラーテーマ",
+        changeCover: "カバーを変更",
+        workspaceTagline: "おかえりなさい！温かいコーヒーとともに、手帳を開きましょう。",
+        draftedSpace: "✨ ワークスペースロード完了",
+        pickIcon: "アイコン選択",
+        chooseCover: "カバー選択",
+        apply: "適用",
+        morningCoffee: "朝のコーヒーを淹れています... ☕",
+        grabCup: "「温かいコーヒーを片手に、今日も一日、自分のペースで進みましょう」",
+        sweetThree: "今日の3大重要目標",
+        focusProductivity: "焦らず、一歩ずつ豊かに",
+        add: "追加",
+        cozyRoutine: "毎日のルーティン",
+        resetTasks: "タスクをリセット",
+        ambientVibe: "あたたかく静かな午後",
+        quickReflection: "小さなスペース日記",
+        autoSaved: "自動保存されました",
+        cafeStatistics: "カフェの活動データ",
+        goalsLeft: "進行中の目標",
+        habitsDone: "習慣達成率",
+        habitTitle: "ハチミツ習慣トラッカー",
+        habitSubtitle: "あま〜いハチミツを貯めるように日々のルーティンを大切に育みます。",
+        honeySweetness: "ハニーポット充填度",
+        habitName: "生活習慣",
+        addHabit: "習慣を追加",
+        libraryTitle: "📚 コージーライブラリ",
+        librarySubtitle: "横に並ぶ文学本棚。右側のコントローラーを操作して、書棚の本がリアルタイムに反応する様子を観察しましょう！",
+        addNewBook: "本棚に本を追加",
+        readingNow: "現在読んでいる本",
+        toRead: "読みたい本リスト",
+        completed: "完読した本",
+        emptyShelf: "本棚は空っぽです。",
+        bookTitle: "書籍名",
+        bookAuthor: "著者",
+        totalPages: "総ページ数",
+        pagesRead: "読んだページ数",
+        bookColor: "背表紙 of カラー",
+        shelfStatus: "棚 of 分類",
+        progress: "読書進捗率",
+        save: "保存する",
+        completeBtn: "完読達成",
+        removeBook: "本棚から削除",
+        cancel: "キャンセル",
+        notesTitle: "🎨 クリエイティブ付箋",
+        notesSubtitle: "デスクトップ of コルکボードに、素敵な考えや温かい引用を留めましょう。",
+        addSticky: "付箋を作成する",
+        selectStickyColor: "付箋の色:",
+        selectLanguage: "言語を選択",
+        stickyPlaceholder: "ここをクリックして素敵なアイデアをメモしましょう...",
+        inspectTitle: "書籍インスペクター",
+        inspectPrompt: "書棚に立つ本をタップすると、ここに詳細が表示されます。スライダーを使ってリアルタイムにページをめくったり背表紙の色を変えたりできます！"
+      },
+      ko: {
+        workspace: "카페 작업 공간",
+        cozyMode: "아늑한 모드 활성화됨",
+        favorites: "즐겨찾기",
+        navDashboard: "☕ 아늑한 카페 허브",
+        navHabits: "🍯 달콤한 습관 트래커",
+        navReading: "📚 아늑한 도서관 로그",
+        navNotes: "🎨 크리에이티브 메모판",
+        aestheticAmbient: "감성 화이트노이즈",
+        lofiTitle: "아늑한 빗소리와 로파이",
+        lofiSubtitle: "마음이 편안해지는 인공 소음",
+        palettes: "컬러 테마",
+        changeCover: "커버 변경",
+        workspaceTagline: "어서 오세요! 따뜻한 커피 한 잔과 함께 플래너를 정리해 보세요.",
+        draftedSpace: "✨ 워크스페이스 로드됨",
+        pickIcon: "아이콘 고르기",
+        chooseCover: "배경 지정",
+        apply: "적용",
+        morningCoffee: "따뜻한 에스프레소 추출 중... ☕",
+        grabCup: "“따뜻한 찻잔을 들고, 오늘 하루도 편안한 마음으로 조금씩 나아가보아요.”",
+        sweetThree: "오늘의 소중한 세 가지 우선순위",
+        focusProductivity: "편안한 집중이 몰입을 만듭니다",
+        add: "추가",
+        cozyRoutine: "아늑한 하루 일과",
+        resetTasks: "일과 초기화",
+        ambientVibe: "조용하고 따사로운 오후 시간",
+        quickReflection: "오늘의 감성 일기",
+        autoSaved: "실시간 자동 저장 완료",
+        cafeStatistics: "공간 통계 대시보드",
+        goalsLeft: "활성 목표",
+        habitsDone: "습관 달성률",
+        habitTitle: "꿀단지 습관 트래커",
+        habitSubtitle: "매일의 일과를 꿀벌이 꿀을 모으듯 기록해 가세요.",
+        honeySweetness: "꿀단지 축적도",
+        habitName: "실천할 습관",
+        addHabit: "습관 추가",
+        libraryTitle: "📚 아늑한 책장 일지",
+        librarySubtitle: "책장 옆에 준비된 인스펙터로 도서를 클릭하고 실시간으로 책들의 진도와 이동을 바라보세요.",
+        addNewBook: "책장에 도서 추가",
+        readingNow: "지금 읽고 있는 책",
+        toRead: "읽을 예정인 책",
+        completed: "완독한 책들",
+        emptyShelf: "책장이 비어 있습니다.",
+        bookTitle: "도서 제목",
+        bookAuthor: "저자",
+        totalPages: "전체 페이지",
+        pagesRead: "읽은 페이지",
+        bookColor: "책등 색상",
+        shelfStatus: "책장 위치",
+        progress: "독서 진도율",
+        save: "저장",
+        completeBtn: "완독 완료!",
+        removeBook: "책장에서 제거",
+        cancel: "취소",
+        notesTitle: "🎨 크리에이티브 파스텔 메모",
+        notesSubtitle: "생각나는 아이디어나 격언들을 데스크 코르크 보드판에 붙여보세요.",
+        addSticky: "새 스티커 메모",
+        selectStickyColor: "스티커 색상:",
+        selectLanguage: "언어 설정",
+        stickyPlaceholder: "여기를 클릭해 따뜻한 생각을 기록하세요...",
+        inspectTitle: "도서 인스펙터",
+        inspectPrompt: "책장에 서 있는 도서를 탭해 보세요! 오른쪽 인스펙터 창을 통해 실시간으로 페이지를 넘기고, 책의 위치를 옮기고, 색상을 다듬을 수 있습니다."
+      },
+      th: {
+        workspace: "พื้นที่ทำงานคาเฟ่",
+        cozyMode: "เปิดโหมดอบอุ่นแล้ว",
+        favorites: "รายการโปรด",
+        navDashboard: "☕ คาเฟ่ฮับแสนอบอุ่น",
+        navHabits: "🍯 เครื่องมือติดตามนิสัย",
+        navReading: "📚 บันทึกห้องสมุด",
+        navNotes: "🎨 โน้ตกระดาษสร้างสรรค์",
+        aestheticAmbient: "เสียงบรรยากาศผ่อนคลาย",
+        lofiTitle: "เสียงฝนและดนตรีคาเฟ่",
+        lofiSubtitle: "เสียงสังเคราะห์เพื่อผ่อนคลาย",
+        palettes: "ชุดสีและธีม",
+        changeCover: "เปลี่ยนภาพหน้าปก",
+        workspaceTagline: "ยินดีต้อนรับกลับมา! หยิบกาแฟอุ่นๆ แล้วมาจัดระเบียบชีวิตอย่างสบายใจกันเถอะ",
+        draftedSpace: "✨ โหลดพื้นที่ทำงานหลักเรียบร้อยแล้ว",
+        pickIcon: "เลือกไอคอน",
+        chooseCover: "เลือกหน้าปก",
+        apply: "ใช้งาน",
+        morningCoffee: "กาแฟยามเช้ากำลังดริปได้ที่... ☕",
+        grabCup: "“จิบกาแฟอุ่นๆ แล้วก้าวเดินไปทีละก้าวอย่างมีความสุขในวันนี้”",
+        sweetThree: "3 สิ่งสำคัญที่สุด in วันนี้",
+        focusProductivity: "ความใจเย็นนำมาซึ่งความสำเร็จ",
+        add: "เพิ่ม",
+        cozyRoutine: "กิจวัตรประจำวันแสนเรียบง่าย",
+        resetTasks: "รีเซ็ตงานทั้งหมด",
+        ambientVibe: "ช่วงบ่ายที่แสนอบอุ่นและเงียบสงบ",
+        quickReflection: "บันทึกความรู้สึก",
+        autoSaved: "บันทึกร่างอัตโนมัติแล้ว",
+        cafeStatistics: "สถิติจำลองของคาเฟ่",
+        goalsLeft: "เป้าหมายหลักในตอนนี้",
+        habitsDone: "อัตราความสำเร็จของนิสัย",
+        habitTitle: "เครื่องติดตามนิสัยโถน้ำผึ้ง",
+        habitSubtitle: "เลี้ยงดูนิสัยประจำวันของคุณให้งดงามดั่งน้ำผึ้งแสนหวานที่ค่อยๆ ไหลริน",
+        honeySweetness: "ระดับน้ำผึ้งในโถ",
+        habitName: "นิสัยของฉัน",
+        addHabit: "เพิ่มนิสัยใหม่",
+        libraryTitle: "📚 ชั้นหนังสือแสนอบอุ่น",
+        librarySubtitle: "จัดการหนังสือด้านข้างได้ทันทีและเห็นการเคลื่อนไหวจริงบนชั้นไม้ในแบบเรียลไทม์",
+        addNewBook: "เพิ่มหนังสือเข้าชั้น",
+        readingNow: "กำลังอ่านอยู่ในขณะนี้",
+        toRead: "หนังสือที่ตั้งใจจะอ่านถัดไป",
+        completed: "หนังสือเล่มโปรดที่อ่านจบแล้ว",
+        emptyShelf: "ชั้นหนังสือว่างเปล่า",
+        bookTitle: "ชื่อหนังสือ",
+        bookAuthor: "ผู้แต่ง",
+        totalPages: "จำนวนหน้าทั้งหมด",
+        pagesRead: "หน้าที่อ่านไปแล้ว",
+        bookColor: "สีของสันหนังสือ",
+        shelfStatus: "จัดวางบนชั้นไหน",
+        progress: "ความคืบหน้าการอ่าน",
+        save: "บันทึกข้อมูล",
+        completeBtn: "อ่านจบแล้ว!",
+        removeBook: "เอาออกจากชั้นหนังสือ",
+        cancel: "ยกเลิก",
+        notesTitle: "🎨 โน้ตกระดาษแปะบอร์ดสร้างสรรค์",
+        notesSubtitle: "แปะความคิด โน้ตสั้นๆ หรือคำคมดีๆ ลงบนกระดานไม้ก๊อก",
+        addSticky: "สร้างกระดาษโน้ตแผ่นใหม่",
+        selectStickyColor: "เลือกสีกระดาษโน้ต:",
+        selectLanguage: "เลือกภาษา",
+        stickyPlaceholder: "คลิกที่นี่เพื่อเขียนสิ่งดีๆ...",
+        inspectTitle: "ตัวตรวจสอบหนังสือ",
+        inspectPrompt: "แตะที่หนังสือเล่มใดก็ได้บนชั้นไม้ เพื่อดูรายละเอียด เลื่อนแถบหน้ากระดาษ และดูความเคลื่อนไหวทันทีจากแถบด้านข้าง!"
+      },
+      no: {
+        workspace: "Kafé-arbeidsområde",
+        cozyMode: "Koselig modus aktivert",
+        favorites: "Favoritter",
+        navDashboard: "☕ Koselig Kafé-Hub",
+        navHabits: "🍯 Honning Vane-tracker",
+        navReading: "📚 Koselig Boklogg",
+        navNotes: "🎨 Kreative Klistrelapper",
+        aestheticAmbient: "Estetisk bakgrunnslyd",
+        lofiTitle: "Lofi Regn & Kafé-lyd",
+        lofiSubtitle: "Avslappende syntetisert lyd",
+        palettes: "Paletter",
+        changeCover: "Endre forsidebilde",
+        workspaceTagline: "Velkommen tilbake! Ta en varm kopp kaffe og finn deg til rette i planleggeren din.",
+        draftedSpace: "✨ Aktivt arbeidsområde lastet",
+        pickIcon: "Velg et ikon",
+        chooseCover: "Velg forsidebilde",
+        apply: "Bruk",
+        morningCoffee: "Morgenkaffen trakter... ☕",
+        grabCup: "“Ta en varm kopp kaffe og ta dagen ett koselig skritt av gangen.”",
+        sweetThree: "Dagens tre søte prioriteringer",
+        focusProductivity: "Fokus bringer ro",
+        add: "Legg til",
+        cozyRoutine: "Koselig daglig rutine",
+        resetTasks: "Nullstill oppgaver",
+        ambientVibe: "En varm og stille ettermiddag",
+        quickReflection: "Kjapp tanke-refleksjon",
+        autoSaved: "Utkast autolagret",
+        cafeStatistics: "Arbeidsområdestatistikk",
+        goalsLeft: "Aktive mål",
+        habitsDone: "Vaner fullført",
+        habitTitle: "Honning Vane-tracker",
+        habitSubtitle: "Dyrk dine daglige ritualer som søt, sakteflytende honning.",
+        honeySweetness: "Honningkrukke-nivå",
+        habitName: "Min vane",
+        addHabit: "Legg til vane",
+        libraryTitle: "📚 Koselig Boklogg",
+        librarySubtitle: "Styr bøkene dine fra sidepanelet og se dem oppdatere seg på de virtuelle trehyllene øyeblikkelig.",
+        addNewBook: "Legg bok på hyllen",
+        readingNow: "Leser nå",
+        toRead: "Neste bok på listen",
+        completed: "Fullført litteratur",
+        emptyShelf: "Ingen bøker i denne hyllen.",
+        bookTitle: "Boktittel",
+        bookAuthor: "Forfatter",
+        totalPages: "Antall sider",
+        pagesRead: "Sider lest",
+        bookColor: "Farge på bokrygg",
+        shelfStatus: "Hylle-status",
+        progress: "Lese-progresjon",
+        save: "Lagre",
+        completeBtn: "Fullført",
+        removeBook: "Fjern bok",
+        cancel: "Avbryt",
+        notesTitle: "🎨 Kreative Klistrelapper",
+        notesSubtitle: "Fest fargerike tanker og sitater til oppslagstavlen på skrivebordet ditt.",
+        addSticky: "Ny klistrelapp",
+        selectStickyColor: "Lapp-farge:",
+        selectLanguage: "Velg språk",
+        stickyPlaceholder: "Klikk her for å skrive noe koselig...",
+        inspectTitle: "Bok-inspektør",
+        inspectPrompt: "Trykk på en stående bok i hyllen for å se detaljer, bla i sider, endre farger eller flytte hyller med en gang!"
+      },
+      it: {
+        workspace: "Spazio Caffè",
+        cozyMode: "Modalità Accogliente Attiva",
+        favorites: "Preferiti",
+        navDashboard: "☕ Hub del Caffè Accogliente",
+        navHabits: "🍯 Tracker Abitudini Miele",
+        navReading: "📚 Registro dei Libri",
+        navNotes: "🎨 Note Adesive Creative",
+        aestheticAmbient: "Audio Ambientale Estetico",
+        lofiTitle: "Pioggia Lofi & Suoni Caffè",
+        lofiSubtitle: "Rumore bianco rilassante",
+        palettes: "Tavolozze",
+        changeCover: "Cambia Copertina",
+        workspaceTagline: "Bentornato! Prendi un caffè caldo e rilassati con il tuo planner personalizzato.",
+        draftedSpace: "✨ Spazio di Lavoro Attivo Caricato",
+        pickIcon: "Scegli un'icona",
+        chooseCover: "Scegli la Copertina",
+        apply: "Applica",
+        morningCoffee: "Il caffè del mattino si sta preparando... ☕",
+        grabCup: "“Prendi una tazza di caffè caldo e affronta la giornata un passo alla volta.”",
+        sweetThree: "Le tre dolci priorità di oggi",
+        focusProductivity: "La calma è produttività",
+        add: "Aggiungi",
+        cozyRoutine: "Routine Quotidiana Accogliente",
+        resetTasks: "Reimposta Attività",
+        ambientVibe: "Pomeriggio caldo e silenzioso",
+        quickReflection: "Riflessione Rapida",
+        autoSaved: "Bozza Salvata Autom.",
+        cafeStatistics: "Statistiche del Caffè",
+        goalsLeft: "Obiettivi Attivi",
+        habitsDone: "Tasso Abitudini",
+        habitTitle: "Tracker Abitudini Miele",
+        habitSubtitle: "Nutri i tuoi rituali quotidiani come il miele dolce che cola lentamente.",
+        honeySweetness: "Livello del Vasetto",
+        habitName: "La mia abitudine",
+        addHabit: "Aggiungi Abitudine",
+        libraryTitle: "📚 Registro della Biblioteca",
+        librarySubtitle: "Gestisci i tuoi libri affiancati sul pannello laterale e guarda i cambiamenti sulle mensole di legno in tempo reale.",
+        addNewBook: "Aggiungi Libro",
+        readingNow: "In Lettura Ora",
+        toRead: "Da Leggere Prossimamente",
+        completed: "Letteratura Completata",
+        emptyShelf: "Nessun libro su questa mensola.",
+        bookTitle: "Titolo del Libro",
+        bookAuthor: "Autore",
+        totalPages: "Pagine Totali",
+        pagesRead: "Pagine Lette",
+        bookColor: "Colore Dorso",
+        shelfStatus: "Stato della Mensola",
+        progress: "Progresso Lettura",
+        save: "Salva",
+        completeBtn: "Completa",
+        removeBook: "Rimuovi Libro",
+        cancel: "Annulla",
+        notesTitle: "🎨 Note Adesive Creative",
+        notesSubtitle: "Appunta pensieri colorati, idee e citazioni sulla tua bacheca di sughero virtuale.",
+        addSticky: "Nuova Nota Adesiva",
+        selectStickyColor: "Colore Nota:",
+        selectLanguage: "Lingua / Lingua",
+        stickyPlaceholder: "Clicca qui per scrivere qualcosa di dolce...",
+        inspectTitle: "Ispettore dei Libri",
+        inspectPrompt: "Tocca qualsiasi libro in piedi sulle mensole per vederne i dettagli, sfogliare le pagine, aggiornare i colori o spostarlo all'istante!"
+      },
+      fr: {
+        workspace: "Espace de Café",
+        cozyMode: "Mode Chaleureux Activé",
+        favorites: "Favoris",
+        navDashboard: "☕ Hub du Café Intime",
+        navHabits: "🍯 Suivi de Routine Miel",
+        navReading: "📚 Journal de Lecture",
+        navNotes: "🎨 Notes Adhésives Créatives",
+        aestheticAmbient: "Ambiance Sonore Esthétique",
+        lofiTitle: "Pluie Lofi & Ambiance Café",
+        lofiSubtitle: "Bruit blanc apaisant",
+        palettes: "Palettes",
+        changeCover: "Changer de Couverture",
+        workspaceTagline: "Bon retour ! Prenez un café bien chaud et installez-vous avec votre agenda.",
+        draftedSpace: "✨ Espace de travail actif chargé",
+        pickIcon: "Choisir une icône",
+        chooseCover: "Choisir la couverture",
+        apply: "Appliquer",
+        morningCoffee: "Le café du matin est en train de couler... ☕",
+        grabCup: "“Prenez une tasse de café chaud et savourez la journée, un pas après l'autre.”",
+        sweetThree: "Les trois douces priorités d'aujourd'hui",
+        focusProductivity: "La douceur favorise la concentration",
+        add: "Ajouter",
+        cozyRoutine: "Routine Quotidienne Douce",
+        resetTasks: "Réinitialiser les tâches",
+        ambientVibe: "Après-midi paisible et chaleureux",
+        quickReflection: "Réflection Instantanée",
+        autoSaved: "Brouillon Sauvegardé",
+        cafeStatistics: "Statistiques de l'Espace",
+        goalsLeft: "Objectifs Actifs",
+        habitsDone: "Taux d'Habitudes",
+        habitTitle: "Suivi de Routine Miel",
+        habitSubtitle: "Nourrissez vos rituels comme un miel doux qui coule lentement.",
+        honeySweetness: "Niveau du Pot de Miel",
+        habitName: "Mon habitude",
+        addHabit: "Ajouter une habitude",
+        libraryTitle: "📚 Journal de Lecture Intime",
+        librarySubtitle: "Gerez vos livres côte à côte via l'inspecteur latéral et regardez-les bouger sur les étagères en bois !",
+        addNewBook: "Ajouter un livre",
+        readingNow: "En cours de lecture",
+        toRead: "À lire ensuite",
+        completed: "Lectures terminées",
+        emptyShelf: "Aucun livre sur cette étagère.",
+        bookTitle: "Titre du livre",
+        bookAuthor: "Auteur",
+        totalPages: "Pages totales",
+        pagesRead: "Pages lues",
+        bookColor: "Couleur de la tranche",
+        shelfStatus: "Statut de l'étagère",
+        progress: "Progression de lecture",
+        save: "Enregistrer",
+        completeBtn: "Terminer",
+        removeBook: "Retirer le livre",
+        cancel: "Annuler",
+        notesTitle: "🎨 Notes Adhésives Creative",
+        notesSubtitle: "Épinglez des pensées colorées et des citations inspirantes sur votre tableau en liège.",
+        addSticky: "Nouvelle note adhésive",
+        selectStickyColor: "Couleur de la note :",
+        selectLanguage: "Langue / Langue",
+        stickyPlaceholder: "Cliquez ici pour écrire quelque chose de doux...",
+        inspectTitle: "Inspecteur de Livre",
+        inspectPrompt: "Touchez n'importe quel livre sur les étagères pour afficher ses détails, tourner ses pages ou changer sa couleur de tranche !"
+      },
+      de: {
+        workspace: "Café-Arbeitsbereich",
+        cozyMode: "Gemütlicher Modus aktiviert",
+        favorites: "Favoriten",
+        navDashboard: "☕ Gemütlicher Café-Hub",
+        navHabits: "🍯 Honig-Gewohnheitstracker",
+        navReading: "📚 Gemütliches Bücherregal",
+        navNotes: "🎨 Kreative Notizzettel",
+        aestheticAmbient: "Ästhetische Raumakustik",
+        lofiTitle: "Lofi-Regen & Café-Klänge",
+        lofiSubtitle: "Entspannendes weißes Rauschen",
+        palettes: "Farbpaletten",
+        changeCover: "Hintergrundbild ändern",
+        workspaceTagline: "Willkommen zurück! Schnapp dir einen heißen Kaffee und plane gemütlich deinen Tag.",
+        draftedSpace: "✨ Aktiver Arbeitsbereich geladen",
+        pickIcon: "Icon auswählen",
+        chooseCover: "Hintergrundbild wählen",
+        apply: "Anwenden",
+        morningCoffee: "Der Morgenkaffee brüht... ☕",
+        grabCup: "“Nimm dir eine heiße Tasse Kaffee und gehe den Tag Schritt für Schritt an.”",
+        sweetThree: "Drei süße Prioritäten für heute",
+        focusProductivity: "Ruhe bringt Produktivität",
+        add: "Hinzufügen",
+        cozyRoutine: "Gemütliche Tagesroutine",
+        resetTasks: "Aufgaben zurücksetzen",
+        ambientVibe: "Warmer & stiller Nachmittag",
+        quickReflection: "Schnelle Gedankennotiz",
+        autoSaved: "Entwurf automatisch gespeichert",
+        cafeStatistics: "Statistiken des Bereichs",
+        goalsLeft: "Aktive Ziele",
+        habitsDone: "Gewohnheitsrate",
+        habitTitle: "Honig-Gewohnheitstracker",
+        habitSubtitle: "Pflege deine täglichen Rituale wie süßen, langsam fließenden Honig.",
+        honeySweetness: "Honigtopf-Füllstand",
+        habitName: "Meine Gewohnheit",
+        addHabit: "Gewohnheit hinzufügen",
+        libraryTitle: "📚 Gemütliches Bücherregal",
+        librarySubtitle: "Verwalte deine Bücher direkt über den Seiten-Inspektor und sieh zu, wie sie im Regal in Echtzeit wandern!",
+        addNewBook: "Buch hinzufügen",
+        readingNow: "Gerade am Lesen",
+        toRead: "Als nächstes lesen",
+        completed: "Abgeschlossene Bücher",
+        emptyShelf: "Noch keine Bücher in diesem Regal.",
+        bookTitle: "Buchtitel",
+        bookAuthor: "Autor",
+        totalPages: "Seitenanzahl",
+        pagesRead: "Gelesene Seiten",
+        bookColor: "Farbe des Buchrückens",
+        shelfStatus: "Regal-Status",
+        progress: "Lese-Fortschritt",
+        save: "Speichern",
+        completeBtn: "Beenden",
+        removeBook: "Buch entfernen",
+        cancel: "Abbrechen",
+        notesTitle: "🎨 Kreative Notizzettel",
+        notesSubtitle: "Pinne farbenfrohe Gedanken, Zitate und Pläne an deine Pinnwand.",
+        addSticky: "Neuer Zettel",
+        selectStickyColor: "Zettelfarbe:",
+        selectLanguage: "Sprache auswählen",
+        stickyPlaceholder: "Klicke hier, um etwas Nettes zu schreiben...",
+        inspectTitle: "Buch-Inspektor",
+        inspectPrompt: "Klicke auf ein stehendes Buch im Regal, um dessen Seiten zu blättern, Farben anzupassen oder Regale direkt zu wechseln!"
+      },
+      cursive: {
+        workspace: "My Cozy Journal Space",
+        cozyMode: "Cozy Whimsical Mode Enabled 🧸",
+        favorites: "My Favorites",
+        navDashboard: "☕ Whimsical Cafe Hub",
+        navHabits: "🍯 Honey Habit Flow",
+        navReading: "📚 Aesthetic Library Log",
+        navNotes: "🎨 Handdrawn Sticky Board",
+        aestheticAmbient: "Dreamy Lofi Sounds",
+        lofiTitle: "Lofi Rain & Melodious Cafe",
+        lofiSubtitle: "Relaxing Acoustic Waves",
+        palettes: "Cozy Palettes",
+        changeCover: "Decorate Cover Image",
+        workspaceTagline: "Welcome back sweet soul! Sip your warm tea and write your beautiful days down.",
+        draftedSpace: "✨ Whimsical Space Activated",
+        pickIcon: "Adorn with New Icon",
+        chooseCover: "Choose Journal Canvas",
+        apply: "Apply Style",
+        morningCoffee: "Sweet tea and coffee is brewing... ☕",
+        grabCup: "“Sip some warm drinks and celebrate every tiny, cozy step you make today.”",
+        sweetThree: "My Sweet Three Goals",
+        focusProductivity: "Slow and steady blossoms best",
+        add: "Add to list",
+        cozyRoutine: "My Cozy Daily Flow",
+        resetTasks: "Reset My Flowers",
+        ambientVibe: "A quiet, warm & cozy afternoon",
+        quickReflection: "My Whimsical Thoughts",
+        autoSaved: "Gently Saved in Heart",
+        cafeStatistics: "My Journal Stats",
+        goalsLeft: "Unfinished Goals",
+        habitsDone: "Habit Sweetness",
+        habitTitle: "Slow Honey Habit Jar",
+        habitSubtitle: "Nurture your beautiful daily flow like sweet, amber honey pouring slowly.",
+        honeySweetness: "Honey Sweetness Level",
+        habitName: "My Daily Ritual",
+        addHabit: "Plant New Habit",
+        libraryTitle: "📚 Standing Wooden Bookshelf",
+        librarySubtitle: "Gently pick any book below to flip pages, change bindings, or reorganize shelves instantly on the right!",
+        addNewBook: "Place New Book on Shelf",
+        readingNow: "Reading right now",
+        toRead: "My wishlist to read next",
+        completed: "Completed literature stories",
+        emptyShelf: "This beautiful shelf is waiting for your story.",
+        bookTitle: "Book's Name",
+        bookAuthor: "Storyteller / Author",
+        totalPages: "Full Pages Count",
+        pagesRead: "Pages I Have Read",
+        bookColor: "Spine / Bind Color",
+        shelfStatus: "Place on Shelf",
+        progress: "Story Progress",
+        save: "Save Notes",
+        completeBtn: "Finish Reading 👑",
+        removeBook: "Remove Book",
+        cancel: "Keep Book",
+        notesTitle: "🎨 Hand-pinned Sticky Board",
+        notesSubtitle: "Pin sweet thoughts, warm reminders, and cozy sketches onto your desk corkboard.",
+        addSticky: "Pin New Scrap Note",
+        selectStickyColor: "Paper Tint Color:",
+        selectLanguage: "Journal Aesthetic Type",
+        stickyPlaceholder: "Click here to write down some cozy ideas...",
+        inspectTitle: "Story Inspector",
+        inspectPrompt: "Click any standing book on the wooden decks to turn pages, adjust spines, or shift shelves in real time!"
+      }
+    };
+
+    let currentLanguage = 'en';
+
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      document.getElementById('language-dropdown').value = lang;
+      
+      const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+      elementsToTranslate.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (languageDict[lang] && languageDict[lang][key]) {
+          element.innerText = languageDict[lang][key];
+        }
+      });
+
+      // Whimsical Cursive styling override trigger
+      if (lang === 'cursive') {
+        document.body.classList.add('font-style-cursive');
+      } else {
+        document.body.classList.remove('font-style-cursive');
+      }
+
+      // Update specific placeholders based on language selection
+      const newPriorityInput = document.getElementById('new-priority-input');
+      const newRoutineInput = document.getElementById('new-routine-input');
+      const newHabitInput = document.getElementById('new-habit-input');
+      const journalInput = document.getElementById('workspace-journal');
+      
+      if (lang === 'zh') {
+        newPriorityInput.placeholder = "添加一个新的今日小目标...";
+        newRoutineInput.placeholder = "添加自定义生活常规...";
+        newHabitInput.placeholder = "喝8杯水、健身、看书...";
+        journalInput.placeholder = "在此写下你脑海中的灵感或是温暖的点滴想法吧...";
+      } else if (lang === 'ja') {
+        newPriorityInput.placeholder = "今日のご褒表目標を登録...";
+        newRoutineInput.placeholder = "カスタマイズされたルーティン...";
+        newHabitInput.placeholder = "8杯の水を飲む、読書、瞑想...";
+        journalInput.placeholder = "ここに頭に浮かんだ素敵なアイデアや暖かい日記を書き留めましょう...";
+      } else if (lang === 'ko') {
+        newPriorityInput.placeholder = "새로운 일일 우선순위 등록...";
+        newRoutineInput.placeholder = "맞춤형 생활 일과 추가...";
+        newHabitInput.placeholder = "물 8잔 마시기, 독서, 요가...";
+        journalInput.placeholder = "지금 머릿속에 떠오른 아늑하고 감성 어린 생각을 적어 내려가 보세요...";
+      } else if (lang === 'th') {
+        newPriorityInput.placeholder = "เพิ่มเป้าหมายย่อยของวันนี้...";
+        newRoutineInput.placeholder = "เพิ่มกิจวัตรส่วนตัวของคุณ...";
+        newHabitInput.placeholder = "ดื่มน้ำ 8 แก้ว, อ่านหนังสือ, ออกกำลังกาย...";
+        journalInput.placeholder = "พิมพ์เรื่องราวที่คุณคิดอยู่ในวันนี้... บันทึกที่แสนอบอุ่นยินดีต้วนรับเสมอ...";
+      } else if (lang === 'no') {
+        newPriorityInput.placeholder = "Legg til et nytt mål...";
+        newRoutineInput.placeholder = "Legg til daglig rutine...";
+        newHabitInput.placeholder = "Drikk vann, les, tren...";
+        journalInput.placeholder = "Skriv ned det du tenker på i dag...";
+      } else if (lang === 'it') {
+        newPriorityInput.placeholder = "Aggiungi un obiettivo...";
+        newRoutineInput.placeholder = "Aggiungi routine...";
+        newHabitInput.placeholder = "Bevi acqua, leggi, medita...";
+        journalInput.placeholder = "Skrivi i tuoi pensieri oggi...";
+      } else if (lang === 'fr') {
+        newPriorityInput.placeholder = "Ajouter un but...";
+        newRoutineInput.placeholder = "Ajouter routine...";
+        newHabitInput.placeholder = "Boire de l'eau, lire, méditer...";
+        journalInput.placeholder = "Écrivez vos pensées du jour...";
+      } else if (lang === 'de') {
+        newPriorityInput.placeholder = "Neues Ziel hinzufügen...";
+        newRoutineInput.placeholder = "Tagesroutine hinzufügen...";
+        newHabitInput.placeholder = "Wasser trinken, lesen, sporteln...";
+        journalInput.placeholder = "Schreibe deine heutigen Gedanken auf...";
+      } else if (lang === 'cursive') {
+        newPriorityInput.placeholder = "What is your next sweet little milestone?";
+        newRoutineInput.placeholder = "Add your customized cozy flow...";
+        newHabitInput.placeholder = "Water seeds, read pages, brew warm matcha...";
+        journalInput.placeholder = "Pen down some whimsical quotes, warm dreams, or cozy cafe designs here...";
+      } else {
+        newPriorityInput.placeholder = "Add a new goal...";
+        newRoutineInput.placeholder = "Add custom routine...";
+        newHabitInput.placeholder = "Drink 8 glasses of water, read, write...";
+        journalInput.placeholder = "Type what's on your mind today... Cozy coffee thoughts welcome...";
+      }
+
+      renderStickyNotes();
+      renderBooks();
+      updateInspectorView();
+      updateSidebarProfile();
+      saveToLocalStorage();
+    }
+  </script>
+
+  <script>
+    // Initial Default Datasets (Fallback state if localStorage is empty)
+    const defaultSweetThree = [
+      { id: 1, text: "Sketch draft for cozy room illustration", completed: false },
+      { id: 2, text: "Finish reading Chapter 3 of Norwegian Wood", completed: true },
+      { id: 3, text: "Brew hot matcha latte and journal", completed: false }
+    ];
+    const defaultDailyRoutines = [
+      { id: 1, text: "Stretch & Deep Breath (5m)", completed: false },
+      { id: 2, text: "Water the indoor bonsai & succulents", completed: true },
+      { id: 3, text: "Drink warm water first thing", completed: false },
+      { id: 4, text: "Review weekly agenda", completed: false }
+    ];
+    const defaultHabits = [
+      { id: 1, name: "Read books standing", done: [true, false, true, true, false, false, false], color: "emerald", emoji: "📖" },
+      { id: 2, name: "Drink 8 Glasses Water", done: [true, true, true, false, true, false, false], color: "sky", emoji: "💧" },
+      { id: 3, name: "No Screen Time in bed", done: [false, true, false, false, true, true, false], color: "lavender", emoji: "🌙" }
+    ];
+    const defaultBooks = [
+      { id: 1, title: "Before the Coffee Gets Cold", author: "Toshikazu Kawaguchi", pages: 213, readPages: 213, status: "completed", color: "bg-gradient-to-t from-red-800 to-red-600 text-red-100", customColor: "#991b1b", spineStyle: "vintage", spineSymbol: "☕", spineHeight: 125, spineWidth: 38, textColor: "#ffffff" },
+      { id: 2, title: "Norwegian Wood", author: "Haruki Murakami", pages: 296, readPages: 145, status: "reading", color: "bg-gradient-to-t from-emerald-800 to-emerald-600 text-emerald-100", customColor: "#065f46", spineStyle: "notebook", spineSymbol: "🌿", spineHeight: 140, spineWidth: 42, textColor: "#ffffff" },
+      { id: 3, title: "The Alchemist", author: "Paulo Coelho", pages: 163, readPages: 0, status: "toread", color: "bg-gradient-to-t from-amber-500 to-yellow-400 text-amber-950", customColor: "#d97706", spineStyle: "vintage", spineSymbol: "🌙", spineHeight: 115, spineWidth: 35, textColor: "#fcd34d" },
+      { id: 4, title: "Kitchen", author: "Banana Yoshimoto", pages: 150, readPages: 45, status: "reading", color: "bg-gradient-to-t from-violet-800 to-violet-600 text-violet-100", customColor: "#5b21b6", spineStyle: "sparkle", spineSymbol: "✨", spineHeight: 130, spineWidth: 40, textColor: "#ffffff" }
+    ];
+    const defaultStickyNotes = [
+      { id: 1, text: "“If you only read the books that everyone else is reading, you can only think what everyone else is thinking.” — Murakami ☕", color: "bg-yellow-100 border-yellow-200 text-yellow-900", tilt: "-1", x: 8, y: 10, zIndex: 10, width: 280, height: 180 },
+      { id: 2, text: "💡 Remember to take a break every 45 minutes of workspace focus. Stretch, sip tea, cuddle the cat.", color: "bg-teal-100 border-teal-200 text-teal-900", tilt: "1.5", x: 52, y: 8, zIndex: 11, width: 280, height: 180 },
+      { id: 3, text: "🥞 Cozy Weekend Plan:\n- Visit local flower greenhouse\n- Try baking custom almond croissants\n- Paint with warm watercolors", color: "bg-rose-100 border-rose-200 text-rose-900", tilt: "-2", x: 30, y: 50, zIndex: 12, width: 310, height: 230 }
+    ];
+    const defaultUserProfile = {
+      name: "Cafe Workspace",
+      avatar: "🧸",
+      isImage: false,
+      customized: false
+    };
+
+    // State holders
+    let activeTab = 'dashboard';
+    let currentTheme = 'cafe';
+    let userProfile;
+    let sweetThree;
+    let dailyRoutines;
+    let habits;
+    let books;
+    let stickyNotes;
+    
+    let draftAvatar = "🧸";
+    let draftIsImage = false;
+    let activeStickyColor = 'bg-yellow-100 border-yellow-200 text-yellow-900';
+    let selectedStickyStyleName = 'yellow';
+    let selectedBookId = null; 
+    let selectedStickyId = 1;  
+    let selectedHabitColor = 'amber';
+    let selectedHabitEmoji = '🍯';
+
+    // Local Storage Operations
+    function saveToLocalStorage() {
+      const state = {
+        currentTheme,
+        currentLanguage,
+        userProfile,
+        sweetThree,
+        dailyRoutines,
+        habits,
+        books,
+        stickyNotes,
+        pageTitle: document.getElementById('page-title').innerHTML,
+        journalText: document.getElementById('workspace-journal').value,
+        emojiIcon: document.getElementById('current-emoji').innerText,
+        coverSrc: document.getElementById('cover-image').src
+      };
+      localStorage.setItem('cozy_cafe_dashboard_state', JSON.stringify(state));
+    }
+
+    function loadFromLocalStorage() {
+      const savedState = localStorage.getItem('cozy_cafe_dashboard_state');
+      if (savedState) {
+        try {
+          const parsed = JSON.parse(savedState);
+          currentTheme = parsed.currentTheme || 'cafe';
+          currentLanguage = parsed.currentLanguage || 'en';
+          userProfile = parsed.userProfile || defaultUserProfile;
+          sweetThree = parsed.sweetThree || defaultSweetThree;
+          dailyRoutines = parsed.dailyRoutines || defaultDailyRoutines;
+          habits = parsed.habits || defaultHabits;
+          books = parsed.books || defaultBooks;
+          stickyNotes = parsed.stickyNotes || defaultStickyNotes;
+          
+          document.getElementById('page-title').innerHTML = parsed.pageTitle || "Cozy Cafe Workspace";
+          document.getElementById('workspace-journal').value = parsed.journalText !== undefined ? parsed.journalText : "Warm afternoon with a quiet wind outside. Brewing a second cup of jasmine green tea and getting ready to dive into reading Murakami on the cozy shelf... ✨";
+          document.getElementById('current-emoji').innerText = parsed.emojiIcon || "☕";
+          document.getElementById('cover-image').src = parsed.coverSrc || "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1600";
+          return;
+        } catch (e) {
+          console.error("Local Storage configuration state read failure. Resetting defaults.", e);
+        }
+      }
+      
+      // Fallback Assignment if storage was unpopulated or corrupted
+      currentTheme = 'cafe';
+      currentLanguage = 'en';
+      userProfile = defaultUserProfile;
+      sweetThree = defaultSweetThree;
+      dailyRoutines = defaultDailyRoutines;
+      habits = defaultHabits;
+      books = defaultBooks;
+      stickyNotes = defaultStickyNotes;
+      document.getElementById('workspace-journal').value = "Warm afternoon with a quiet wind outside. Brewing a second cup of jasmine green tea and getting ready to dive into reading Murakami on the cozy shelf... ✨";
+    }
+
+    function savePrioritiesTitle() {
+      const el = document.getElementById('priorities-title');
+      el.removeAttribute('data-i18n');
+      saveToLocalStorage();
+    }
+
+    function savePrioritiesSubhead() {
+      const el = document.getElementById('priorities-subhead');
+      el.removeAttribute('data-i18n');
+      saveToLocalStorage();
+    }
+
+    function focusElement(id) {
+      const el = document.getElementById(id);
+      el.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // Drag and Drop State Management variables
+    let activeDragNoteId = null;
+    let startPointerX = 0;
+    let startPointerY = 0;
+    let startNoteX = 0;
+    let startNoteY = 0;
+    let maxZIndex = 20;
+
+    window.onload = function() {
+      // Load stored state configurations immediately on launch
+      loadFromLocalStorage();
+
+      // Setup live date
+      const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('date-string').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+      
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Render updated application states
+      setTheme(currentTheme);
+      changeLanguage(currentLanguage);
+      renderSweetThree();
+      renderRoutines();
+      renderHabits();
+      renderBooks();
+      renderStickyNotes();
+      updateGlobalStats();
+      updateSidebarProfile();
+      updateWordCount();
+
+      // Select layout interaction defaults safely
+      if (books.length > 0) inspectBook(books[0].id);
+      if (stickyNotes.length > 0) selectSticky(stickyNotes[0].id);
+
+      // Initialize icons
+      lucide.createIcons();
+
+      // Setup drag and drop events at document level to protect against quick movements
+      window.addEventListener('mousemove', handleStickyDrag);
+      window.addEventListener('touchmove', handleStickyDrag, { passive: false });
+      window.addEventListener('mouseup', endStickyDrag);
+      window.addEventListener('touchend', endStickyDrag);
+    }
+
+    // Color shader function for realistic dark gradient underlay
+    function darkenColor(hex, percent) {
+      hex = hex.replace(/^\s*#|\s*$/g, '');
+      if (hex.length === 3) {
+        hex = hex.replace(/(.)/g, '$1$1');
+      }
+      let r = parseInt(hex.substr(0, 2), 16),
+          g = parseInt(hex.substr(2, 2), 16),
+          b = parseInt(hex.substr(4, 2), 16);
+
+      r = Math.max(0, Math.floor(r * (1 - percent / 100)));
+      g = Math.max(0, Math.floor(g * (1 - percent / 100)));
+      b = Math.max(0, Math.floor(b * (1 - percent / 100)));
+
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Dynamic Live Clock
+    function updateClock() {
+      const now = new Date();
+      let timeStr = now.toLocaleTimeString(currentLanguage === 'en' ? 'en-US' : currentLanguage, { hour12: true });
+      document.getElementById('live-clock').innerText = timeStr;
+    }
+
+    // Tab Switching Machine
+    function switchTab(tabId) {
+      activeTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(section => {
+        section.classList.add('hidden');
+        section.classList.remove('block');
+      });
+      document.getElementById(`tab-${tabId}-content`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}-content`).classList.add('block');
+
+      // Refresh Nav Highlights
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = "nav-btn w-full text-left px-3 py-2 rounded-lg flex items-center space-x-3 text-sm font-medium transition-all duration-200 text-[var(--text-muted)] hover:bg-[var(--accent-light)] hover:text-[var(--text-main)]";
+      });
+      
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      if (activeNav) {
+        activeNav.className = "nav-btn w-full text-left px-3 py-2 rounded-lg flex items-center space-x-3 text-sm font-medium transition-all duration-200 badge-pastel";
+      }
+
+      lucide.createIcons();
+    }
+
+    // Set Palette Theme CSS variables
+    function setTheme(themeName) {
+      currentTheme = themeName;
+      const body = document.body;
+      body.className = `theme-${themeName} font-sans overflow-x-hidden min-h-screen pb-12 transition-all ${currentLanguage === 'cursive' ? 'font-style-cursive' : ''}`;
+      saveToLocalStorage();
+    }
+
+    // Modal Emoji Controls
+    function openEmojiSelector() { document.getElementById('emoji-modal').classList.remove('hidden'); }
+    function closeEmojiSelector() { document.getElementById('emoji-modal').classList.add('hidden'); }
+    function setEmoji(emoji) {
+      document.getElementById('current-emoji').innerText = emoji;
+      closeEmojiSelector();
+      triggerConfetti();
+      saveToLocalStorage();
+    }
+
+    // Profile Settings Modal Handlers (Uploader logic)
+    function openProfileModal() {
+      const modal = document.getElementById('profile-modal');
+      modal.classList.remove('hidden');
+      document.getElementById('profile-name-input').value = userProfile.name;
+      draftAvatar = userProfile.avatar;
+      draftIsImage = userProfile.isImage;
+
+      const preview = document.getElementById('modal-profile-preview');
+      if (draftIsImage) {
+        preview.innerHTML = `<img src="${draftAvatar}" class="w-full h-full object-cover">`;
+      } else {
+        preview.innerHTML = draftAvatar;
+      }
+      lucide.createIcons();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    function triggerProfileUpload() {
+      document.getElementById('profile-file-input').click();
+    }
+
+    function uploadProfileImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('modal-profile-preview');
+          preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+          draftAvatar = e.target.result;
+          draftIsImage = true;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function setProfileEmoji(emoji) {
+      draftAvatar = emoji;
+      draftIsImage = false;
+      const preview = document.getElementById('modal-profile-preview');
+      preview.innerHTML = emoji;
+    }
+
+    function saveProfileSettings() {
+      const nameInput = document.getElementById('profile-name-input').value.trim();
+      userProfile.name = nameInput || "Cafe Workspace";
+      userProfile.avatar = draftAvatar;
+      userProfile.isImage = draftIsImage;
+      userProfile.customized = true;
+
+      updateSidebarProfile();
+      closeProfileModal();
+      triggerConfetti();
+      saveToLocalStorage();
+    }
+
+    function updateSidebarProfile() {
+      const avatarContainer = document.getElementById('profile-avatar-container');
+      const nameEl = document.getElementById('profile-name');
+
+      if (userProfile.isImage) {
+        avatarContainer.innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
+      } else {
+        avatarContainer.innerHTML = `<span id="profile-avatar-text">${userProfile.avatar}</span>`;
+      }
+
+      if (userProfile.customized) {
+        nameEl.removeAttribute('data-i18n');
+        nameEl.innerText = userProfile.name;
+      } else {
+        nameEl.setAttribute('data-i18n', 'workspace');
+        if (languageDict[currentLanguage]) {
+          nameEl.innerText = languageDict[currentLanguage]['workspace'] || userProfile.name;
+        }
+      }
+    }
+
+    // Modal Cover Image Controls
+    function openCoverSelector() { document.getElementById('cover-modal').classList.remove('hidden'); }
+    function closeCoverSelector() { document.getElementById('cover-modal').classList.add('hidden'); }
+    function setCover(url) {
+      document.getElementById('cover-image').src = url;
+      closeCoverSelector();
+      saveToLocalStorage();
+    }
+    function setCustomCover() {
+      const url = document.getElementById('custom-cover-url').value.trim();
+      if (url) {
+        setCover(url);
+        document.getElementById('custom-cover-url').value = '';
+      }
+    }
+
+    // Dynamic Title focus
+    function focusPageTitle() {
+      const title = document.getElementById('page-title');
+      title.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(title);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    
+    function savePageTitle() {
+      saveToLocalStorage();
+    }
+
+    // ---------------- TASK UTILITIES (SWEET THREE & ROUTINES) ----------------
+    function renderSweetThree() {
+      const container = document.getElementById('sweet-three-container');
+      container.innerHTML = '';
+      sweetThree.forEach(item => {
+        container.innerHTML += `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] transition-all hover:scale-[1.01]">
+            <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="toggleTask('priority', ${item.id})">
+              <div class="w-5 h-5 rounded-full border-2 border-[var(--accent)] flex items-center justify-center transition-all ${item.completed ? 'bg-[var(--accent)] text-white' : 'bg-transparent'}">
+                ${item.completed ? '✓' : ''}
+              </div>
+              <span class="text-xs ${item.completed ? 'line-through text-[var(--text-muted)]' : 'font-medium'}">${item.text}</span>
+            </div>
+            <button onclick="deleteTask('priority', ${item.id})" class="text-[var(--text-muted)] hover:text-red-500 ml-2 transition-colors">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+      updateGlobalStats();
+    }
+
+    function renderRoutines() {
+      const container = document.getElementById('routines-container');
+      container.innerHTML = '';
+      dailyRoutines.forEach(item => {
+        container.innerHTML += `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] transition-all hover:translate-x-0.5">
+            <div class="flex items-center space-x-3 flex-1 cursor-pointer" onclick="toggleTask('routine', ${item.id})">
+              <div class="w-5.5 h-5.5 rounded-lg border-2 border-[var(--border-color)] flex items-center justify-center transition-all ${item.completed ? 'bg-[var(--accent-light)] text-[var(--accent-dark)]' : 'bg-transparent'}">
+                ${item.completed ? '✨' : ''}
+              </div>
+              <span class="text-xs ${item.completed ? 'line-through text-[var(--text-muted)]' : 'font-medium'}">${item.text}</span>
+            </div>
+            <button onclick="deleteTask('routine', ${item.id})" class="text-[var(--text-muted)] hover:text-red-500 ml-2">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function toggleTask(type, id) {
+      if (type === 'priority') {
+        const item = sweetThree.find(i => i.id === id);
+        if (item) {
+          item.completed = !item.completed;
+          if (item.completed) triggerConfetti();
+          renderSweetThree();
+          saveToLocalStorage();
+        }
+      } else {
+        const item = dailyRoutines.find(i => i.id === id);
+        if (item) {
+          item.completed = !item.completed;
+          if (item.completed) triggerConfetti();
+          renderRoutines();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function addTask(type) {
+      if (type === 'priority') {
+        const input = document.getElementById('new-priority-input');
+        const text = input.value.trim();
+        if (text) {
+          sweetThree.push({ id: Date.now(), text: text, completed: false });
+          input.value = '';
+          renderSweetThree();
+          saveToLocalStorage();
+        }
+      } else {
+        const input = document.getElementById('new-routine-input');
+        const text = input.value.trim();
+        if (text) {
+          dailyRoutines.push({ id: Date.now(), text: text, completed: false });
+          input.value = '';
+          renderRoutines();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function deleteTask(type, id) {
+      if (type === 'priority') {
+        sweetThree = sweetThree.filter(i => i.id !== id);
+        renderSweetThree();
+      } else {
+        dailyRoutines = dailyRoutines.filter(i => i.id !== id);
+        renderRoutines();
+      }
+      saveToLocalStorage();
+    }
+
+    function resetRoutines() {
+      dailyRoutines.forEach(r => r.completed = false);
+      renderRoutines();
+      saveToLocalStorage();
+    }
+
+    function saveJournal() {
+      updateWordCount();
+      saveToLocalStorage();
+    }
+
+    function updateWordCount() {
+      const text = document.getElementById('workspace-journal').value;
+      const count = text.trim() ? text.trim().split(/\s+/).length : 0;
+      document.getElementById('journal-word-count').innerText = `${count} ${currentLanguage === 'en' ? 'words' : 'words / 词数'}`;
+    }
+
+    // ---------------- HONEY HABIT TRACKER UTILITIES ----------------
+    function renderHabits() {
+      const tbody = document.getElementById('habits-table-body');
+      tbody.innerHTML = '';
+      
+      const habitColorStyles = {
+        amber: { active: "bg-amber-100 border-amber-400 text-amber-900 shadow-sm hover:bg-amber-200", border: "border-slate-200 hover:border-amber-300 text-slate-300 hover:text-amber-300" },
+        emerald: { active: "bg-emerald-100 border-emerald-400 text-emerald-900 shadow-sm hover:bg-emerald-200", border: "border-slate-200 hover:border-emerald-300 text-slate-300 hover:text-emerald-300" },
+        rose: { active: "bg-rose-100 border-rose-400 text-rose-900 shadow-sm hover:bg-rose-200", border: "border-slate-200 hover:border-rose-300 text-slate-300 hover:text-rose-300" },
+        lavender: { active: "bg-purple-100 border-purple-400 text-purple-900 shadow-sm hover:bg-purple-200", border: "border-slate-200 hover:border-purple-300 text-slate-300 hover:text-purple-300" },
+        sky: { active: "bg-sky-100 border-sky-400 text-sky-900 shadow-sm hover:bg-sky-200", border: "border-slate-200 hover:border-sky-300 text-slate-300 hover:text-sky-300" }
+      };
+
+      habits.forEach(habit => {
+        let cellsHtml = '';
+        const hColor = habit.color || 'amber';
+        const hEmoji = habit.emoji || '🍯';
+        const style = habitColorStyles[hColor] || habitColorStyles.amber;
+
+        for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+          const isDone = habit.done[dayIdx];
+          cellsHtml += `
+            <td class="py-3 text-center">
+              <button onclick="toggleHabitDay(${habit.id}, ${dayIdx})" class="w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-all ${isDone ? style.active + ' scale-110' : style.border}">
+                ${isDone ? hEmoji : '<span class="text-[9px] opacity-25">o</span>'}
+              </button>
+            </td>
+          `;
+        }
+        
+        const bulletColors = { amber: "bg-amber-400", emerald: "bg-emerald-400", rose: "bg-rose-400", lavender: "bg-purple-400", sky: "bg-sky-400" };
+        const bullet = bulletColors[hColor] || "bg-amber-400";
+        
+        tbody.innerHTML += `
+          <tr class="hover:bg-[var(--accent-light)]/40 transition-colors">
+            <td class="py-3 px-2 font-medium text-[var(--text-main)] text-xs flex items-center space-x-2">
+              <span class="text-base select-none">${hEmoji}</span>
+              <span class="w-2 h-2 rounded-full ${bullet}"></span>
+              <span class="truncate max-w-[130px] sm:max-w-[180px]">${habit.name}</span>
+            </td>
+            ${cellsHtml}
+            <td class="py-3 text-center">
+              <button onclick="deleteHabit(${habit.id})" class="text-[var(--text-muted)] hover:text-red-500">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      lucide.createIcons();
+      updateHoneyProgress();
+    }
+
+    function toggleHabitDay(habitId, dayIdx) {
+      const habit = habits.find(h => h.id === habitId);
+      if (habit) {
+        habit.done[dayIdx] = !habit.done[dayIdx];
+        if (habit.done[dayIdx]) triggerConfetti();
+        renderHabits();
+        updateGlobalStats();
+        saveToLocalStorage();
+      }
+    }
+
+    function setSelectedHabitColor(color) {
+      selectedHabitColor = color;
+      document.querySelectorAll('.habit-color-btn').forEach(btn => {
+        btn.classList.remove('scale-110', 'border-amber-400', 'border-emerald-400', 'border-rose-400', 'border-purple-400', 'border-sky-400');
+        btn.classList.add('border-transparent');
+      });
+      const activeBtn = document.getElementById(`habit-color-${color}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent');
+        const borderColors = { amber: 'border-amber-400', emerald: 'border-emerald-400', rose: 'border-rose-400', lavender: 'border-purple-400', sky: 'border-sky-400' };
+        activeBtn.classList.add('scale-110', borderColors[color] || 'border-amber-400');
+      }
+    }
+
+    function setSelectedHabitEmoji(emoji) {
+      selectedHabitEmoji = emoji;
+      document.querySelectorAll('.habit-emoji-btn').forEach(btn => {
+        btn.classList.remove('border-amber-300');
+        btn.classList.add('border-[var(--border-color)]');
+      });
+      const activeBtn = document.getElementById(`habit-emoji-${emoji}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-[var(--border-color)]');
+        activeBtn.classList.add('border-amber-300');
+      }
+    }
+
+    function addHabit() {
+      const input = document.getElementById('new-habit-input');
+      const text = input.value.trim();
+      if (text) {
+        habits.push({
+          id: Date.now(),
+          name: text,
+          done: [false, false, false, false, false, false, false],
+          color: selectedHabitColor,
+          emoji: selectedHabitEmoji
+        });
+        input.value = '';
+        renderHabits();
+        updateGlobalStats();
+        saveToLocalStorage();
+      }
+    }
+
+    function deleteHabit(id) {
+      habits = habits.filter(h => h.id !== id);
+      renderHabits();
+      updateGlobalStats();
+      saveToLocalStorage();
+    }
+
+    function updateHoneyProgress() {
+      let totalCells = habits.length * 7;
+      if (totalCells === 0) {
+        document.getElementById('honey-progress-bar').style.width = '0%';
+        document.getElementById('honey-progress-text').innerText = '0%';
+        return;
+      }
+      let doneCount = 0;
+      habits.forEach(h => {
+        h.done.forEach(d => { if (d) doneCount++; });
+      });
+      let percentage = Math.round((doneCount / totalCells) * 100);
+      document.getElementById('honey-progress-bar').style.width = `${percentage}%`;
+      document.getElementById('honey-progress-text').innerText = `${percentage}%`;
+    }
+
+    // ---------------- COZY LIBRARY LOG ----------------
+    function renderBooks() {
+      const readingShelf = document.getElementById('shelf-reading');
+      const toreadShelf = document.getElementById('shelf-toread');
+      const completedShelf = document.getElementById('shelf-completed');
+      
+      readingShelf.innerHTML = '';
+      toreadShelf.innerHTML = '';
+      completedShelf.innerHTML = '';
+
+      let readingCount = 0;
+      let toreadCount = 0;
+      let completedCount = 0;
+
+      books.forEach(book => {
+        const progressPercent = Math.round((book.readPages / book.pages) * 100);
+        const height = book.spineHeight || (book.pages > 350 ? 150 : book.pages > 220 ? 135 : 120);
+        const width = book.spineWidth || (book.pages > 300 ? 46 : book.pages > 180 ? 40 : 36);
+
+        const isSelected = selectedBookId === book.id;
+        const selectedGlowClass = isSelected ? 'active-book-glow' : '';
+        const wrapperHoverClasses = isSelected ? '' : 'hover:-translate-y-4 hover:rotate-1 hover:shadow-2xl';
+
+        let backgroundStyle = '';
+        if (book.customColor) {
+          const darkTone = darkenColor(book.customColor, 22);
+          const shadowTone = darkenColor(book.customColor, 38);
+          backgroundStyle = `background: linear-gradient(to top, ${darkTone} 0%, ${book.customColor} 90%, ${shadowTone} 100%)`;
+        }
+
+        let patternHtml = '';
+        if (book.spineStyle === 'vintage') {
+          patternHtml = `
+            <div class="absolute inset-x-0 top-3 h-1 bg-yellow-400 border-y border-yellow-500 opacity-60"></div>
+            <div class="absolute inset-x-0 top-5 h-[2px] bg-yellow-400 opacity-40"></div>
+            <div class="absolute inset-x-0 bottom-6 h-1 bg-yellow-400 border-y border-yellow-500 opacity-60"></div>
+            <div class="absolute inset-x-0 bottom-8 h-[2px] bg-yellow-400 opacity-40"></div>
+          `;
+        } else if (book.spineStyle === 'striped') {
+          patternHtml = `
+            <div class="absolute inset-0 opacity-15 pointer-events-none" style="background: repeating-linear-gradient(45deg, transparent, transparent 5px, #ffffff 5px, #ffffff 10px);"></div>
+          `;
+        } else if (book.spineStyle === 'notebook') {
+          patternHtml = `
+            <div class="absolute inset-y-0 left-2.5 w-[1px] border-r border-dashed border-white/30"></div>
+          `;
+        } else if (book.spineStyle === 'sparkle') {
+          patternHtml = `
+            <div class="absolute top-2 left-2 text-[6px] animate-pulse opacity-50">✨</div>
+            <div class="absolute bottom-5 right-2 text-[6px] animate-pulse opacity-50">✨</div>
+          `;
+        }
+
+        const emblemHtml = book.spineSymbol ? `<div class="text-[9px] text-center my-1 select-none opacity-80" style="color: ${book.textColor || '#ffffff'};">${book.spineSymbol}</div>` : '';
+        const spineColorClasses = book.customColor ? '' : book.color;
+        const inlineStyleAttr = `${backgroundStyle}; height: ${height}px; width: ${width}px; color: ${book.textColor || '#ffffff'};`;
+
+        const bookSpineHtml = `
+          <div onclick="inspectBook(${book.id})" class="relative group cursor-pointer flex-shrink-0 transition-all duration-300 transform ${wrapperHoverClasses} flex items-end">
+            <div id="spine-node-${book.id}" class="${spineColorClasses} ${selectedGlowClass} rounded-t-lg relative shadow-md border-l-[6px] border-black/20 flex flex-col justify-between py-2 overflow-hidden border border-black/10 transition-all duration-300" style="${inlineStyleAttr}">
+              <div class="absolute inset-y-0 left-0 w-[1px] bg-white/10"></div>
+              ${patternHtml}
+              <div class="px-1 flex-1 flex items-center justify-center relative">
+                <span class="book-spine text-[8px] tracking-wide font-bold text-center whitespace-nowrap overflow-hidden text-ellipsis select-none opacity-90 max-h-[80%]">
+                  ${book.title}
+                </span>
+              </div>
+              ${emblemHtml}
+              ${progressPercent > 80 && book.status !== 'completed' ? `<div class="absolute -bottom-1 right-2 w-1.5 h-3 bg-yellow-400 rounded-b shadow"></div>` : ''}
+              ${book.status === 'completed' ? `<div class="absolute top-1.5 right-1 text-[7px]">👑</div>` : ''}
+              <div class="text-[8px] text-center font-bold font-mono py-0.5 px-0.5 bg-black/25 w-full truncate relative z-10">
+                ${progressPercent}%
+              </div>
+            </div>
+            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-28 hidden group-hover:block bg-neutral-900 text-white text-[9px] p-1.5 rounded shadow-lg z-30 pointer-events-none text-center">
+              <p class="font-bold truncate">${book.title}</p>
+              <p class="text-white/60 text-[8px] truncate">${book.author}</p>
+            </div>
+          </div>
+        `;
+
+        if (book.status === 'reading') { readingShelf.innerHTML += bookSpineHtml; readingCount++; }
+        else if (book.status === 'toread') { toreadShelf.innerHTML += bookSpineHtml; toreadCount++; }
+        else if (book.status === 'completed') { completedShelf.innerHTML += bookSpineHtml; completedCount++; }
+      });
+
+      const emptyText = languageDict[currentLanguage] ? (languageDict[currentLanguage]['emptyShelf'] || 'No books.') : 'No books.';
+      if (readingCount === 0) readingShelf.innerHTML = `<p class="text-xs text-[var(--text-muted)] italic self-center mx-auto pb-4">${emptyText}</p>`;
+      if (toreadCount === 0) toreadShelf.innerHTML = `<p class="text-xs text-[var(--text-muted)] italic self-center mx-auto pb-4">${emptyText}</p>`;
+      if (completedCount === 0) completedShelf.innerHTML = `<p class="text-xs text-[var(--text-muted)] italic self-center mx-auto pb-4">${emptyText}</p>`;
+
+      document.getElementById('count-reading').innerText = readingCount;
+      document.getElementById('count-toread').innerText = toreadCount;
+      document.getElementById('count-completed').innerText = completedCount;
+    }
+
+    function openAddBookModal() { document.getElementById('book-modal').classList.remove('hidden'); }
+    function closeAddBookModal() { document.getElementById('book-modal').classList.add('hidden'); }
+
+    function addBook() {
+      const title = document.getElementById('book-title-input').value.trim();
+      const author = document.getElementById('book-author-input').value.trim();
+      const pages = parseInt(document.getElementById('book-pages-input').value) || 100;
+      const read = parseInt(document.getElementById('book-read-input').value) || 0;
+      const color = document.getElementById('book-color-input').value;
+      const status = document.getElementById('book-status-input').value;
+
+      if (title) {
+        const newBookId = Date.now();
+        books.push({
+          id: newBookId, title: title, author: author || "Unknown", pages: pages, readPages: Math.min(read, pages),
+          status: status, color: color, customColor: "", spineStyle: "solid", spineSymbol: "", spineHeight: 130, spineWidth: 38, textColor: "#ffffff"
+        });
+        document.getElementById('book-title-input').value = '';
+        document.getElementById('book-author-input').value = '';
+        document.getElementById('book-pages-input').value = '250';
+        document.getElementById('book-read-input').value = '0';
+        
+        closeAddBookModal();
+        renderBooks();
+        inspectBook(newBookId); 
+        triggerConfetti();
+        saveToLocalStorage();
+      }
+    }
+
+    // ---------------- INSPECTOR PANEL INTERACTION HANDLERS ----------------
+    function inspectBook(id) {
+      selectedBookId = id;
+      books.forEach(b => {
+        const el = document.getElementById(`spine-node-${b.id}`);
+        if (el) {
+          if (b.id === id) el.classList.add('active-book-glow');
+          else el.classList.remove('active-book-glow');
+        }
+      });
+      updateInspectorView();
+    }
+
+    function deselectBook() {
+      selectedBookId = null;
+      updateInspectorView();
+      renderBooks();
+    }
+
+    function updateInspectorView() {
+      const placeholder = document.getElementById('inspector-placeholder');
+      const activePanel = document.getElementById('inspector-active');
+
+      if (!selectedBookId) { placeholder.classList.remove('hidden'); activePanel.classList.add('hidden'); return; }
+      const book = books.find(b => b.id === selectedBookId);
+      if (!book) { selectedBookId = null; placeholder.classList.remove('hidden'); activePanel.classList.add('hidden'); return; }
+
+      placeholder.classList.add('hidden'); activePanel.classList.remove('hidden');
+
+      document.getElementById('inspect-title-text').innerText = book.title;
+      document.getElementById('inspect-author-text').innerText = `${currentLanguage === 'en' ? 'By' : 'Author:'} ${book.author}`;
+      document.getElementById('inspect-input-read').value = book.readPages;
+      document.getElementById('inspect-total-span').innerText = book.pages;
+      document.getElementById('inspect-edit-title').value = book.title;
+      document.getElementById('inspect-edit-author').value = book.author;
+      document.getElementById('inspect-edit-color').value = book.color;
+      document.getElementById('inspect-edit-status').value = book.status;
+
+      const customCol = book.customColor || "#d4a373";
+      document.getElementById('inspect-custom-color').value = customCol;
+      document.getElementById('inspect-custom-color-hex').innerText = customCol;
+      document.getElementById('inspect-spine-style').value = book.spineStyle || "solid";
+      document.getElementById('inspect-spine-symbol').value = book.spineSymbol || "";
+      document.getElementById('inspect-text-color').value = book.textColor || "#ffffff";
+
+      const height = book.spineHeight || 130;
+      const width = book.spineWidth || 38;
+      document.getElementById('inspect-slider-height').value = height;
+      document.getElementById('inspect-height-label').innerText = `${height}px`;
+      document.getElementById('inspect-slider-width').value = width;
+      document.getElementById('inspect-width-label').innerText = `${width}px`;
+
+      let emoji = '📖';
+      if (book.status === 'completed') emoji = '👑';
+      else if (book.status === 'toread') emoji = '🧸';
+      document.getElementById('inspect-book-emoji').innerText = emoji;
+
+      const percent = Math.round((book.readPages / book.pages) * 100);
+      document.getElementById('inspect-progress-percent').innerText = `${percent}%`;
+      document.getElementById('inspect-progress-fill').style.width = `${percent}%`;
+      document.getElementById('inspect-slider').value = percent;
+    }
+
+    function onInspectorSliderMoved(sliderVal) {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) {
+          book.readPages = Math.round((sliderVal / 100) * book.pages);
+          if (book.readPages === book.pages && book.status !== 'completed') { book.status = 'completed'; triggerConfetti(); }
+          else if (book.status === 'completed' && book.readPages < book.pages) { book.status = 'reading'; }
+          renderBooks();
+          updateInspectorView();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function onInspectorPagesChanged() {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) {
+          const val = parseInt(document.getElementById('inspect-input-read').value) || 0;
+          book.readPages = Math.min(Math.max(0, val), book.pages);
+          if (book.readPages === book.pages && book.status !== 'completed') { book.status = 'completed'; triggerConfetti(); }
+          else if (book.status === 'completed' && book.readPages < book.pages) { book.status = 'reading'; }
+          renderBooks();
+          updateInspectorView();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function onInspectorDetailsEdited() {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) {
+          book.title = document.getElementById('inspect-edit-title').value.trim() || book.title;
+          book.author = document.getElementById('inspect-edit-author').value.trim() || book.author;
+          renderBooks();
+          document.getElementById('inspect-title-text').innerText = book.title;
+          document.getElementById('inspect-author-text').innerText = `${currentLanguage === 'en' ? 'By' : 'Author:'} ${book.author}`;
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function onInspectorCustomColorChanged(hexVal) {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) { book.customColor = hexVal; document.getElementById('inspect-custom-color-hex').innerText = hexVal; renderBooks(); saveToLocalStorage(); }
+      }
+    }
+
+    function onInspectorDesignChanged() {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) {
+          book.spineStyle = document.getElementById('inspect-spine-style').value;
+          book.spineSymbol = document.getElementById('inspect-spine-symbol').value;
+          book.textColor = document.getElementById('inspect-text-color').value;
+          renderBooks();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function onInspectorDimensionChanged(dimension, val) {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) {
+          if (dimension === 'height') { book.spineHeight = parseInt(val); document.getElementById('inspect-height-label').innerText = `${val}px`; }
+          else if (dimension === 'width') { book.spineWidth = parseInt(val); document.getElementById('inspect-width-label').innerText = `${val}px`; }
+          renderBooks();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function onInspectorPresetColorChanged(presetClass) {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) { book.color = presetClass; book.customColor = ""; renderBooks(); updateInspectorView(); saveToLocalStorage(); }
+      }
+    }
+
+    function onInspectorShelfChanged(newShelfStatus) {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) {
+          book.status = newShelfStatus;
+          if (newShelfStatus === 'completed') book.readPages = book.pages;
+          else if (newShelfStatus === 'toread') book.readPages = 0;
+          renderBooks();
+          updateInspectorView();
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function toggleCompletedInspector() {
+      if (selectedBookId) {
+        const book = books.find(b => b.id === selectedBookId);
+        if (book) { book.readPages = book.pages; book.status = 'completed'; triggerConfetti(); renderBooks(); updateInspectorView(); saveToLocalStorage(); }
+      }
+    }
+
+    function deleteBookInspector() {
+      if (selectedBookId) { books = books.filter(b => b.id !== selectedBookId); selectedBookId = null; renderBooks(); updateInspectorView(); saveToLocalStorage(); }
+    }
+
+    // ---------------- CREATIVE STICKY NOTES INTERACTIVE PLAYGROUND ----------------
+    function renderStickyNotes() {
+      const board = document.getElementById('sticky-board');
+      board.innerHTML = '';
+      
+      stickyNotes.forEach(note => {
+        const isSelected = selectedStickyId === note.id;
+        const selectedRingClass = isSelected ? 'ring-4 ring-[var(--accent)]/50 border-[var(--accent)]' : '';
+
+        board.innerHTML += `
+          <div class="absolute rounded-2xl border ${note.color} ${selectedRingClass} shadow-md flex flex-col justify-between transition-shadow duration-300 hover:shadow-lg select-none" 
+               id="sticky-note-${note.id}" 
+               style="left: ${note.x}%; top: ${note.y}%; width: ${note.width || 280}px; min-height: ${note.height || 180}px; z-index: ${note.zIndex || 10}; transform: rotate(${note.tilt}deg); touch-action: none;">
+            <div class="w-full h-8 flex items-center justify-center border-b border-black/5 relative bg-black/[0.03] rounded-t-2xl cursor-grab active:cursor-grabbing"
+                 onmousedown="startDragSticky(event, ${note.id})" 
+                 ontouchstart="startDragSticky(event, ${note.id})">
+              <div class="absolute left-4 flex space-x-0.5 opacity-25"><i data-lucide="grip-horizontal" class="w-3.5 h-3.5 text-current"></i></div>
+              <div class="w-3.5 h-3.5 rounded-full bg-red-500 shadow border border-red-600 flex items-center justify-center"><div class="w-1 h-1 rounded-full bg-white"></div></div>
+              <div class="absolute right-4 flex space-x-0.5 opacity-25"><i data-lucide="grip-horizontal" class="w-3.5 h-3.5 text-current"></i></div>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between h-full bg-transparent">
+              <textarea onblur="updateStickyText(${note.id}, this.value)" 
+                        onfocus="selectSticky(${note.id})"
+                        placeholder="Click here to write something sweet and cozy..." 
+                        class="w-full flex-1 bg-transparent text-xs resize-none outline-none focus:ring-0 leading-relaxed font-medium cursor-text min-h-[80px]">${note.text}</textarea>
+              <div class="flex justify-between items-center mt-2 pt-1 border-t border-black/5 text-[9px] opacity-60">
+                <span class="uppercase tracking-widest font-bold font-sans">Desk Pin</span>
+                <button onclick="deleteStickyNote(${note.id})" class="hover:text-red-600 font-semibold">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function selectSticky(id) {
+      selectedStickyId = id;
+      const note = stickyNotes.find(n => n.id === id);
+      if (note) {
+        document.getElementById('sticky-width-slider').value = note.width || 280;
+        document.getElementById('sticky-width-label').innerText = `${note.width || 280}px`;
+        document.getElementById('sticky-height-slider').value = note.height || 180;
+        document.getElementById('sticky-height-label').innerText = `${note.height || 180}px`;
+      }
+      
+      stickyNotes.forEach(n => {
+        const element = document.getElementById(`sticky-note-${n.id}`);
+        if (element) {
+          if (n.id === id) element.classList.add('ring-4', 'ring-[var(--accent)]/50', 'border-[var(--accent)]');
+          else element.classList.remove('ring-4', 'ring-[var(--accent)]/50', 'border-[var(--accent)]');
+        }
+      });
+    }
+
+    function onStickySizeChanged(dimension, val) {
+      if (selectedStickyId) {
+        const note = stickyNotes.find(n => n.id === selectedStickyId);
+        if (note) {
+          if (dimension === 'width') { note.width = parseInt(val); document.getElementById('sticky-width-label').innerText = `${val}px`; }
+          else if (dimension === 'height') { note.height = parseInt(val); document.getElementById('sticky-height-label').innerText = `${val}px`; }
+          const element = document.getElementById(`sticky-note-${selectedStickyId}`);
+          if (element) { element.style.width = `${note.width}px`; element.style.minHeight = `${note.height}px`; }
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function setStickySizePreset(w, h) {
+      if (selectedStickyId) {
+        const note = stickyNotes.find(n => n.id === selectedStickyId);
+        if (note) {
+          note.width = w; note.height = h;
+          document.getElementById('sticky-width-slider').value = w;
+          document.getElementById('sticky-width-label').innerText = `${w}px`;
+          document.getElementById('sticky-height-slider').value = h;
+          document.getElementById('sticky-height-label').innerText = `${h}px`;
+
+          const element = document.getElementById(`sticky-note-${selectedStickyId}`);
+          if (element) { element.style.width = `${w}px`; element.style.minHeight = `${h}px`; }
+          saveToLocalStorage();
+        }
+      }
+    }
+
+    function startDragSticky(e, id) {
+      selectSticky(id);
+      const tagName = e.target.tagName.toLowerCase();
+      if (tagName === 'textarea' || tagName === 'button' || e.target.closest('button')) return;
+      
+      const note = stickyNotes.find(n => n.id === id);
+      if (!note) return;
+
+      activeDragNoteId = id;
+      maxZIndex++;
+      note.zIndex = maxZIndex;
+      
+      const pointerEvent = e.touches ? e.touches[0] : e;
+      startPointerX = pointerEvent.clientX; startPointerY = pointerEvent.clientY;
+      startNoteX = note.x; startNoteY = note.y;
+
+      const element = document.getElementById(`sticky-note-${id}`);
+      if (element) {
+        element.style.zIndex = maxZIndex;
+        element.classList.add('shadow-2xl', 'scale-[1.03]', 'opacity-95');
+        element.style.transform = `rotate(0deg)`;
+      }
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function handleStickyDrag(e) {
+      if (activeDragNoteId === null) return;
+      const note = stickyNotes.find(n => n.id === activeDragNoteId);
+      const board = document.getElementById('sticky-board');
+      const element = document.getElementById(`sticky-note-${activeDragNoteId}`);
+      if (!note || !board || !element) return;
+
+      const boardRect = board.getBoundingClientRect();
+      const pointerEvent = e.touches ? e.touches[0] : e;
+      
+      const dx = pointerEvent.clientX - startPointerX;
+      const dy = pointerEvent.clientY - startPointerY;
+      
+      const dxPct = (dx / boardRect.width) * 100;
+      const dyPct = (dy / boardRect.height) * 100;
+      
+      let newX = startNoteX + dxPct;
+      let newY = startNoteY + dyPct;
+      
+      const noteWidthPct = (element.offsetWidth / boardRect.width) * 100;
+      const noteHeightPct = (element.offsetHeight / boardRect.height) * 100;
+      
+      newX = Math.min(Math.max(0, newX), 100 - noteWidthPct);
+      newY = Math.min(Math.max(0, newY), 100 - noteHeightPct);
+
+      element.style.left = `${newX}%`;
+      element.style.top = `${newY}%`;
+
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function endStickyDrag(e) {
+      if (activeDragNoteId === null) return;
+      const note = stickyNotes.find(n => n.id === activeDragNoteId);
+      const element = document.getElementById(`sticky-note-${activeDragNoteId}`);
+      if (note && element) {
+        const leftPct = parseFloat(element.style.left);
+        const topPct = parseFloat(element.style.top);
+        note.x = isNaN(leftPct) ? note.x : leftPct;
+        note.y = isNaN(topPct) ? note.y : topPct;
+        
+        element.classList.remove('shadow-2xl', 'scale-[1.03]', 'opacity-95');
+        element.style.transform = `rotate(${note.tilt}deg)`;
+        saveToLocalStorage();
+      }
+      activeDragNoteId = null;
+    }
+
+    function setStickyColor(colorClass, styleName) {
+      activeStickyColor = colorClass; selectedStickyStyleName = styleName;
+      ['yellow', 'rose', 'teal', 'purple', 'orange'].forEach(c => {
+        const el = document.getElementById(`color-${c}`);
+        if (c === styleName) el.classList.add('scale-125', 'border-yellow-400');
+        else el.classList.remove('scale-125', 'border-yellow-400');
+      });
+
+      if (selectedStickyId) {
+        const note = stickyNotes.find(n => n.id === selectedStickyId);
+        if (note) { note.color = colorClass; renderStickyNotes(); saveToLocalStorage(); }
+      }
+    }
+
+    function addStickyNote() {
+      const nextZ = ++maxZIndex;
+      const w = parseInt(document.getElementById('sticky-width-slider').value) || 280;
+      const h = parseInt(document.getElementById('sticky-height-slider').value) || 180;
+      const newId = Date.now();
+
+      stickyNotes.push({
+        id: newId, text: '', color: activeStickyColor, tilt: (Math.random() * 4 - 2).toFixed(1),
+        x: 15 + Math.random() * 45, y: 15 + Math.random() * 35, zIndex: nextZ, width: w, height: h
+      });
+
+      renderStickyNotes();
+      selectSticky(newId);
+      triggerConfetti();
+      saveToLocalStorage();
+    }
+
+    function updateStickyText(id, newText) {
+      const note = stickyNotes.find(n => n.id === id);
+      if (note) { note.text = newText; saveToLocalStorage(); }
+    }
+
+    function deleteStickyNote(id) {
+      stickyNotes = stickyNotes.filter(n => n.id !== id);
+      if (selectedStickyId === id) selectedStickyId = stickyNotes.length > 0 ? stickyNotes[0].id : null;
+      renderStickyNotes();
+      if (selectedStickyId) selectSticky(selectedStickyId);
+      saveToLocalStorage();
+    }
+
+    // ---------------- GLOBAL STATS ----------------
+    function updateGlobalStats() {
+      const activeGoals = sweetThree.filter(g => !g.completed).length;
+      document.getElementById('stat-priority-count').innerText = activeGoals;
+
+      let totalCells = habits.length * 7;
+      let completedCells = 0;
+      habits.forEach(h => { h.done.forEach(d => { if (d) completedCells++; }); });
+      const habitRate = totalCells > 0 ? Math.round((completedCells / totalCells) * 100) : 0;
+      document.getElementById('stat-habit-rate').innerText = `${habitRate}%`;
+    }
+
+    // ---------------- CONFETTI GRAPHICS ----------------
+    function triggerConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+      let particles = [];
+      const colors = ['#f9bec7', '#fbe9b6', '#c6f1d6', '#ded4f7', '#d4a373', '#b5835a'];
+
+      for (let i = 0; i < 70; i++) {
+        particles.push({
+          x: Math.random() * canvas.width, y: canvas.height + 20, vx: Math.random() * 6 - 3, vy: Math.random() * -12 - 5,
+          color: colors[Math.floor(Math.random() * colors.length)], radius: Math.random() * 4 + 3, alpha: 1
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.alpha -= 0.015;
+            ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+            active = true;
+          }
+        });
+        if (active) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      animate();
+    }
+
+    // ---------------- SYNTHESIZED LOFI MUSIC ----------------
+    function initSynthAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      mainGainNode = audioCtx.createGain();
+      mainGainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); 
+      mainGainNode.connect(audioCtx.destination);
+
+      noiseGainNode = audioCtx.createGain();
+      noiseGainNode.gain.setValueAtTime(0.08, audioCtx.currentTime); 
+      noiseGainNode.connect(audioCtx.destination);
+
+      const bufferSize = 2 * audioCtx.sampleRate;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i]; output[i] *= 3.5;
+      }
+
+      noiseBufferNode = audioCtx.createBufferSource();
+      noiseBufferNode.buffer = noiseBuffer; noiseBufferNode.loop = true;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.setValueAtTime(650, audioCtx.currentTime);
+
+      noiseBufferNode.connect(filter); filter.connect(noiseGainNode);
+      noiseBufferNode.start();
+
+      playLofiSynthProgression();
+      synthInterval = setInterval(playLofiSynthProgression, 6000);
+    }
+
+    function playLofiSynthProgression() {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
+      const progressions = [
+        [130.81, 164.81, 196.00, 246.94], [146.83, 174.61, 220.00, 261.63],
+        [164.81, 196.00, 246.94, 293.66], [174.61, 220.00, 261.63, 329.63]
+      ];
+
+      const chord = progressions[Math.floor(Math.random() * progressions.length)];
+      const startTime = audioCtx.currentTime;
+
+      chord.forEach((freq, index) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, startTime);
+        
+        const vib = audioCtx.createOscillator();
+        const vibGain = audioCtx.createGain();
+        vib.frequency.setValueAtTime(3.5, startTime); vibGain.gain.setValueAtTime(1.5, startTime);
+        vib.connect(vibGain); vibGain.connect(osc.frequency);
+        vib.start(startTime);
+
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(0.04 - (index * 0.005), startTime + 0.8 + (index * 0.1)); 
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 5.2); 
+
+        osc.connect(gainNode); gainNode.connect(mainGainNode);
+        osc.start(startTime); osc.stop(startTime + 5.5); vib.stop(startTime + 5.5);
+      });
+    }
+
+    function toggleMusic() {
+      const playIcon = document.getElementById('play-icon');
+      const musicIndicator = document.getElementById('music-indicator');
+
+      if (!isSynthPlaying) {
+        if (!audioCtx) initSynthAudio();
+        else if (audioCtx.state === 'suspended') audioCtx.resume();
+        isSynthPlaying = true;
+        playIcon.setAttribute('data-lucide', 'pause');
+        musicIndicator.classList.remove('hidden');
+        triggerConfetti();
+      } else {
+        if (audioCtx) audioCtx.suspend();
+        isSynthPlaying = false;
+        playIcon.setAttribute('data-lucide', 'play');
+        musicIndicator.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
